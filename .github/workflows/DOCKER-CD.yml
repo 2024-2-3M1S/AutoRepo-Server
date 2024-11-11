@@ -47,7 +47,7 @@ jobs:
 
       - name: docker image 빌드 및 푸시
         run: |
-          docker build --platform linux/amd64 -t team3m1s/autorepo .
+          docker build --platform linux/amd64 -t team3m1s/autorepo:latest .
           docker push team3m1s/autorepo
         working-directory: ${{ env.working-directory }}
         
