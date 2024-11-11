@@ -50,6 +50,9 @@ jobs:
           docker build --platform linux/amd64 -t team3m1s/autorepo .
           docker push team3m1s/autorepo
         working-directory: ${{ env.working-directory }}
+      
+      - name: deploy.sh 실행 권한 추가
+        run: chmod +x deploy.sh
 
   cd:
     needs: ci
