@@ -6,6 +6,7 @@ import org.autorepo.server.global.error.dto.ErrorResponse;
 import org.autorepo.server.global.error.exception.BusinessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -66,6 +67,17 @@ public class GlobalExceptionHandler {
         final ErrorCode errorCode = e.getErrorCode();
         final ErrorResponse errorBaseResponse = ErrorResponse.of(errorCode);
         return ResponseEntity.status(errorCode.getHttpStatus()).body(errorBaseResponse);
+    }
+
+    /**
+     * 인증 실패 처리
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException e) {
+        log.error(">>> handle: AuthenticationException ", e);
+        final ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
+        final ErrorResponse errorResponse = ErrorResponse.of(errorCode);
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(errorResponse);
     }
 
     /**
