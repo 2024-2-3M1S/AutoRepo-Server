@@ -1,13 +1,16 @@
 package org.autorepo.server.domain.user.entity;
 
 import jakarta.persistence.*;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.autorepo.server.domain.repo.entity.Repo;
 import org.autorepo.server.global.common.BaseTimeEntity;
 
 import java.util.List;
 
-
+@Builder
+@Getter
+@Setter
+@AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "user")
 @Entity
