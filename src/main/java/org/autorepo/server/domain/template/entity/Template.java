@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.autorepo.server.domain.repo.entity.Repo;
 
+@Getter
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor

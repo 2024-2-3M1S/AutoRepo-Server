@@ -2,13 +2,14 @@ package org.autorepo.server.domain.template.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.autorepo.server.domain.template.dto.request.CreateTemplateRequestDto;
+import org.autorepo.server.domain.template.dto.request.TemplateListResponseDto;
+import org.autorepo.server.domain.template.entity.TemplateType;
 import org.autorepo.server.domain.template.service.TemplateService;
 import org.autorepo.server.global.common.SuccessResponse;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @RequestMapping("/api/template")
@@ -22,5 +23,11 @@ public class TemplateController {
         templateService.uploadTemplate(createTemplateRequestDto);
         templateService.saveTemplate(createTemplateRequestDto);
         return SuccessResponse.created(null);
+    }
+
+    @GetMapping("/{type}")
+    public ResponseEntity<SuccessResponse<?>> getAllTemplate(@PathVariable TemplateType type) {
+        List<TemplateListResponseDto> templateListResponseDto = templateService.getAllTemplate(type);
+        return SuccessResponse.ok(templateListResponseDto);
     }
 }

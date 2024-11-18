@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.autorepo.server.domain.repo.entity.Repo;
 import org.autorepo.server.domain.repo.repository.RepoRepository;
 import org.autorepo.server.domain.template.dto.request.CreateTemplateRequestDto;
+import org.autorepo.server.domain.template.dto.request.TemplateListResponseDto;
 import org.autorepo.server.domain.template.entity.Template;
 import org.autorepo.server.domain.template.entity.TemplateType;
 import org.autorepo.server.domain.template.repository.TemplateRepository;
@@ -16,6 +17,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -122,6 +126,14 @@ public class TemplateService {
 
             templateRepository.save(template);
         }
+    }
+
+    public List<TemplateListResponseDto> getAllTemplate(TemplateType type) {
+        List<Template> templates = templateRepository.findAllByType(type);
+
+        return templates.stream()
+                .map(TemplateListResponseDto::of)
+                .collect(Collectors.toList());
     }
 
 
