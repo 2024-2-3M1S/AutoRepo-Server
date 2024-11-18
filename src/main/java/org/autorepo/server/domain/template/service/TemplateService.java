@@ -1,7 +1,12 @@
 package org.autorepo.server.domain.template.service;
 
 import lombok.RequiredArgsConstructor;
+import org.autorepo.server.domain.repo.entity.Repo;
+import org.autorepo.server.domain.repo.repository.RepoRepository;
 import org.autorepo.server.domain.template.dto.request.CreateTemplateRequestDto;
+import org.autorepo.server.domain.template.entity.Template;
+import org.autorepo.server.domain.template.entity.TemplateType;
+import org.autorepo.server.domain.template.repository.TemplateRepository;
 import org.autorepo.server.domain.user.entity.User;
 import org.autorepo.server.domain.user.repository.UserRepository;
 import org.json.JSONObject;
@@ -18,6 +23,8 @@ public class TemplateService {
     private static final String ISSUE_TEMPLATE_PATH = ".github/ISSUE_TEMPLATE/issue_template.md";
 
     private final UserRepository userRepository;
+    private final TemplateRepository templateRepository;
+    private final RepoRepository repoRepository;
 
     // PR/ISSUE 템플릿 업로드
     public void uploadTemplate(CreateTemplateRequestDto createTemplateRequestDto) {
@@ -36,7 +43,7 @@ public class TemplateService {
 
 
     // GitHub API 요청
-    public void saveFileToGitHub(String repoUrl, String path, String content, String type, String token) {
+    private void saveFileToGitHub(String repoUrl, String path, String content, String type, String token) {
         RestTemplate restTemplate = new RestTemplate();
 
         String[] repoInfo = parseRepositoryUrl(repoUrl);
@@ -71,7 +78,7 @@ public class TemplateService {
     }
 
     // repo URL에서 owner와 repo 정보를 파싱
-    public String[] parseRepositoryUrl(String repoUrl) {
+    private String[] parseRepositoryUrl(String repoUrl) {
         String[] parts = repoUrl.split("/");
         if (parts.length < 5) {
             throw new IllegalArgumentException("잘못된 저장소 URL 형식입니다.");
@@ -93,6 +100,25 @@ public class TemplateService {
             return null;
         }
         return null;
+    }
+
+    // 템플릿 저장
+    public void saveTemplate(CreateTemplateRequestDto createTemplateRequestDto) {
+        Repo repo = repoRepository.findByRepoUrl(createTemplateRequestDto.repoUrl())
+                .orElseThrow(() -> new IllegalArgumentException("해당 Repo를 찾을 수 없습니다: " + createTemplateRequestDto.repoUrl()));
+
+        boolean templateExists = templateRepository.findByRepoAndContent(repo, createTemplateRequestDto.content())
+                .isPresent();
+
+        if (!templateExists) {
+            Template template = Template.builder()
+                    .content(createTemplateRequestDto.content())
+                    .type(TemplateType.valueOf(createTemplateRequestDto.type().toUpperCase()))
+                    .repo(repo)
+                    .build();
+
+            templateRepository.save(template);
+        }
     }
 
 }

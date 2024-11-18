@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.autorepo.server.domain.repo.entity.Repo;
 
+@AllArgsConstructor
+@Builder
 @NoArgsConstructor
 @Table(name = "template")
 @Entity

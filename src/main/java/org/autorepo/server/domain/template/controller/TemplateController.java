@@ -20,6 +20,7 @@ public class TemplateController {
     @PostMapping("/upload")
     public ResponseEntity<SuccessResponse<?>> uploadTemplate(@RequestBody CreateTemplateRequestDto createTemplateRequestDto) {
         templateService.uploadTemplate(createTemplateRequestDto);
+        templateService.saveTemplate(createTemplateRequestDto);
         return SuccessResponse.created(null);
     }
 }
