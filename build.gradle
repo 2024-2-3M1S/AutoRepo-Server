@@ -43,6 +43,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	// Spring OAuth2 Client
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    //json
+    implementation 'org.json:json:20230227'
+
 
 }
 
