@@ -10,7 +10,10 @@ import org.autorepo.server.domain.template.repository.TemplateRepository;
 import org.autorepo.server.domain.user.entity.User;
 import org.autorepo.server.domain.user.repository.UserRepository;
 import org.json.JSONObject;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -34,16 +37,16 @@ public class TemplateService {
 
         //이슈 메타 데이터 정보 임시 고정
         String metaContent = "---\nname: Issue template\nabout: Issue template\ntitle: ''\nlabels: ''\nassignees: ''\n---";
-        String content = metaContent  +"\n"+ createTemplateRequestDto.content();
+        String content = metaContent + "\n" + createTemplateRequestDto.content();
 
-        String path = createTemplateRequestDto.type().equalsIgnoreCase("PR") ? PR_TEMPLATE_PATH : ISSUE_TEMPLATE_PATH;
+        String path = createTemplateRequestDto.type().equals("PR") ? PR_TEMPLATE_PATH : ISSUE_TEMPLATE_PATH;
 
         saveFileToGitHub(createTemplateRequestDto.repoUrl(), path, content, createTemplateRequestDto.type(), user.getGithubToken());
     }
 
 
     // GitHub API 요청
-    private void saveFileToGitHub(String repoUrl, String path, String content, String type, String token) {
+    private void saveFileToGitHub(String repoUrl, String path, String content, TemplateType type, String token) {
         RestTemplate restTemplate = new RestTemplate();
 
         String[] repoInfo = parseRepositoryUrl(repoUrl);
@@ -113,12 +116,13 @@ public class TemplateService {
         if (!templateExists) {
             Template template = Template.builder()
                     .content(createTemplateRequestDto.content())
-                    .type(TemplateType.valueOf(createTemplateRequestDto.type().toUpperCase()))
+                    .type(createTemplateRequestDto.type())
                     .repo(repo)
                     .build();
 
             templateRepository.save(template);
         }
     }
+
 
 }
