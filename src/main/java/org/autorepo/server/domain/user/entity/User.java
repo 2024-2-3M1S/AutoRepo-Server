@@ -20,6 +20,7 @@ public class User extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
     private String githubId;
+    private String githubToken;
     @Enumerated(EnumType.STRING)
     private UserRole userRole;
     @OneToMany(mappedBy = "user")
