@@ -39,11 +39,12 @@ public class TemplateService {
         User user = userRepository.findById(createTemplateRequestDto.userId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 ID를 가진 사용자를 찾을 수 없습니다: " + createTemplateRequestDto.userId()));
 
+        boolean isPR = createTemplateRequestDto.type() == TemplateType.PR;
+
         //이슈 메타 데이터 정보 임시 고정
         String metaContent = "---\nname: Issue template\nabout: Issue template\ntitle: ''\nlabels: ''\nassignees: ''\n---";
-        String content = metaContent + "\n" + createTemplateRequestDto.content();
-
-        String path = createTemplateRequestDto.type().equals("PR") ? PR_TEMPLATE_PATH : ISSUE_TEMPLATE_PATH;
+        String content = isPR ? createTemplateRequestDto.content() : metaContent + "\n" + createTemplateRequestDto.content();
+        String path = isPR ? PR_TEMPLATE_PATH : ISSUE_TEMPLATE_PATH;
 
         saveFileToGitHub(createTemplateRequestDto.repoUrl(), path, content, createTemplateRequestDto.type(), user.getGithubToken());
     }
@@ -128,6 +129,7 @@ public class TemplateService {
         }
     }
 
+    // 템플릿 리스트 조회
     public List<TemplateListResponseDto> getAllTemplate(TemplateType type) {
         List<Template> templates = templateRepository.findAllByType(type);
 
