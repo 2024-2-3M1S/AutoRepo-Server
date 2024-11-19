@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TemplateRepository extends JpaRepository<Template, Long> {
-    Optional<Template> findByRepoAndContent(Repo repo, String content);
+    Optional<Template> findByTitleAndContent(String title, String content);
+
     List<Template> findAllByType(TemplateType type);
 }

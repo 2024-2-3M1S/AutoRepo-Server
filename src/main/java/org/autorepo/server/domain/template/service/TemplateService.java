@@ -3,8 +3,9 @@ package org.autorepo.server.domain.template.service;
 import lombok.RequiredArgsConstructor;
 import org.autorepo.server.domain.repo.entity.Repo;
 import org.autorepo.server.domain.repo.repository.RepoRepository;
-import org.autorepo.server.domain.template.dto.request.CreateTemplateRequestDto;
+import org.autorepo.server.domain.template.dto.request.ShareTemplateRequestDto;
 import org.autorepo.server.domain.template.dto.request.TemplateListResponseDto;
+import org.autorepo.server.domain.template.dto.request.UploadTemplateRequestDto;
 import org.autorepo.server.domain.template.entity.Template;
 import org.autorepo.server.domain.template.entity.TemplateType;
 import org.autorepo.server.domain.template.repository.TemplateRepository;
@@ -34,19 +35,19 @@ public class TemplateService {
     private final RepoRepository repoRepository;
 
     // PR/ISSUE 템플릿 업로드
-    public void uploadTemplate(CreateTemplateRequestDto createTemplateRequestDto) {
+    public void uploadTemplate(UploadTemplateRequestDto uploadTemplateRequestDto) {
 
-        User user = userRepository.findById(createTemplateRequestDto.userId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 ID를 가진 사용자를 찾을 수 없습니다: " + createTemplateRequestDto.userId()));
+        User user = userRepository.findById(uploadTemplateRequestDto.userId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 ID를 가진 사용자를 찾을 수 없습니다: " + uploadTemplateRequestDto.userId()));
 
-        boolean isPR = createTemplateRequestDto.type() == TemplateType.PR;
+        boolean isPR = uploadTemplateRequestDto.type() == TemplateType.PR;
 
         //이슈 메타 데이터 정보 임시 고정
         String metaContent = "---\nname: Issue template\nabout: Issue template\ntitle: ''\nlabels: ''\nassignees: ''\n---";
-        String content = isPR ? createTemplateRequestDto.content() : metaContent + "\n" + createTemplateRequestDto.content();
+        String content = isPR ? uploadTemplateRequestDto.content() : metaContent + "\n" + uploadTemplateRequestDto.content();
         String path = isPR ? PR_TEMPLATE_PATH : ISSUE_TEMPLATE_PATH;
 
-        saveFileToGitHub(createTemplateRequestDto.repoUrl(), path, content, createTemplateRequestDto.type(), user.getGithubToken());
+        saveFileToGitHub(uploadTemplateRequestDto.repoUrl(), path, content, uploadTemplateRequestDto.type(), user.getGithubToken());
     }
 
 
@@ -111,18 +112,16 @@ public class TemplateService {
     }
 
     // 템플릿 저장
-    public void saveTemplate(CreateTemplateRequestDto createTemplateRequestDto) {
-        Repo repo = repoRepository.findByRepoUrl(createTemplateRequestDto.repoUrl())
-                .orElseThrow(() -> new IllegalArgumentException("해당 Repo를 찾을 수 없습니다: " + createTemplateRequestDto.repoUrl()));
+    public void saveTemplate(ShareTemplateRequestDto shareTemplateRequestDto) {
 
-        boolean templateExists = templateRepository.findByRepoAndContent(repo, createTemplateRequestDto.content())
+        boolean templateExists = templateRepository.findByTitleAndContent(shareTemplateRequestDto.title(), shareTemplateRequestDto.content())
                 .isPresent();
 
         if (!templateExists) {
             Template template = Template.builder()
-                    .content(createTemplateRequestDto.content())
-                    .type(createTemplateRequestDto.type())
-                    .repo(repo)
+                    .title(shareTemplateRequestDto.title())
+                    .content(shareTemplateRequestDto.content())
+                    .type(shareTemplateRequestDto.type())
                     .build();
 
             templateRepository.save(template);

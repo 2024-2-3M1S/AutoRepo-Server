@@ -1,8 +1,9 @@
 package org.autorepo.server.domain.template.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.autorepo.server.domain.template.dto.request.CreateTemplateRequestDto;
+import org.autorepo.server.domain.template.dto.request.ShareTemplateRequestDto;
 import org.autorepo.server.domain.template.dto.request.TemplateListResponseDto;
+import org.autorepo.server.domain.template.dto.request.UploadTemplateRequestDto;
 import org.autorepo.server.domain.template.entity.TemplateType;
 import org.autorepo.server.domain.template.service.TemplateService;
 import org.autorepo.server.global.common.SuccessResponse;
@@ -19,11 +20,17 @@ public class TemplateController {
     private final TemplateService templateService;
 
     @PostMapping("/upload")
-    public ResponseEntity<SuccessResponse<?>> uploadTemplate(@RequestBody CreateTemplateRequestDto createTemplateRequestDto) {
-        templateService.uploadTemplate(createTemplateRequestDto);
-        templateService.saveTemplate(createTemplateRequestDto);
+    public ResponseEntity<SuccessResponse<?>> uploadTemplate(@RequestBody UploadTemplateRequestDto uploadTemplateRequestDto) {
+        templateService.uploadTemplate(uploadTemplateRequestDto);
         return SuccessResponse.created(null);
     }
+
+    @PostMapping("/share")
+    public ResponseEntity<SuccessResponse<?>> shareTemplate(@RequestBody ShareTemplateRequestDto shareTemplateRequestDto) {
+        templateService.saveTemplate(shareTemplateRequestDto);
+        return SuccessResponse.created(null);
+    }
+
 
     @GetMapping("/{type}")
     public ResponseEntity<SuccessResponse<?>> getAllTemplate(@PathVariable TemplateType type) {
