@@ -15,6 +15,7 @@ public class Template {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long templateId;
+    private String title;
     @Enumerated(EnumType.STRING)
     private TemplateType type;
     @Column(columnDefinition = "TEXT")
