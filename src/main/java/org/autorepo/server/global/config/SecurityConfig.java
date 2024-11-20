@@ -16,6 +16,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/api/template/**").permitAll() // 토큰 없이 임시 허용
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/favicon.ico").permitAll()
                         .anyRequest().permitAll()
