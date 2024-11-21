@@ -1,4 +1,4 @@
-package org.autorepo.server.domain.template.dto.request;
+package org.autorepo.server.domain.template.dto.response;
 
 import org.autorepo.server.domain.template.entity.Template;
 
