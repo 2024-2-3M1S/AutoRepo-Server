@@ -26,7 +26,8 @@ public enum ErrorCode {
     /**
      * 404 Not Found
      */
-    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 멤버를 찾을 수 없습니다."),
+    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 리소스를 찾을 수 없습니다."),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 멤버를 찾을 수 없습니다."),
 
     /**
      * 405 Method Not Allowed
@@ -39,9 +40,18 @@ public enum ErrorCode {
     CONFLICT(HttpStatus.CONFLICT, "이미 존재하는 리소스입니다."),
 
     /**
+     * 422 Unprocessable Entity
+     */
+    UNPROCESSABLE_ENTITY(HttpStatus.UNPROCESSABLE_ENTITY, "요청 처리에 실패했습니다."),
+
+    /**
      * 500 Internal Server Error
      */
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류입니다.");
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류입니다."),
+    GITHUB_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "GitHub API 호출 중 오류가 발생했습니다."),
+    GITHUB_LABEL_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "기존 라벨 삭제 중 오류가 발생했습니다."),
+    GITHUB_LABEL_CREATE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "라벨 생성 중 오류가 발생했습니다."),
+    GITHUB_TEMPLATE_UPLOAD_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "템플릿 업로드 중 오류가 발생했습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
