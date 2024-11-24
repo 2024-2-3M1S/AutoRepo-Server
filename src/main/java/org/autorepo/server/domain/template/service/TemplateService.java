@@ -1,6 +1,8 @@
 package org.autorepo.server.domain.template.service;
 
 import lombok.RequiredArgsConstructor;
+import org.autorepo.server.domain.repo.entity.Repo;
+import org.autorepo.server.domain.repo.repository.RepoRepository;
 import org.autorepo.server.domain.repo.service.GitHubService;
 import org.autorepo.server.domain.template.dto.request.ShareTemplateRequestDto;
 import org.autorepo.server.domain.template.dto.request.UploadTemplateRequestDto;
@@ -28,6 +30,7 @@ public class TemplateService {
     private final GitHubService gitHubService;
     private final UserRepository userRepository;
     private final TemplateRepository templateRepository;
+    private final RepoRepository repoRepository;
 
     // 템플릿 업로드
     public void uploadTemplate(UploadTemplateRequestDto uploadTemplateRequestDto) {
@@ -61,11 +64,18 @@ public class TemplateService {
 
     // 템플릿 저장
     public void saveTemplate(ShareTemplateRequestDto shareTemplateRequestDto) {
-        boolean templateExists = templateRepository.findByTitleAndContent(shareTemplateRequestDto.title(), shareTemplateRequestDto.content())
-                .isPresent();
+        Repo repo = repoRepository.findByRepoUrl(shareTemplateRequestDto.repoUrl())
+                .orElseThrow(() -> new IllegalArgumentException(ErrorCode.REPO_NOT_FOUND.getMessage()));
+
+        boolean templateExists = templateRepository.findByRepoAndTitleAndContent(
+                repo,
+                shareTemplateRequestDto.title(),
+                shareTemplateRequestDto.content()
+        ).isPresent();
 
         if (!templateExists) {
             Template template = Template.builder()
+                    .repo(repo)
                     .title(shareTemplateRequestDto.title())
                     .content(shareTemplateRequestDto.content())
                     .type(shareTemplateRequestDto.type())
