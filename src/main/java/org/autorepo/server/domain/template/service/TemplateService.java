@@ -1,11 +1,16 @@
 package org.autorepo.server.domain.template.service;
 
 import lombok.RequiredArgsConstructor;
+import org.autorepo.server.domain.readme.entity.Readme;
+import org.autorepo.server.domain.readme.repository.ReadmeRepository;
 import org.autorepo.server.domain.repo.entity.Repo;
 import org.autorepo.server.domain.repo.repository.RepoRepository;
 import org.autorepo.server.domain.repo.service.GitHubService;
 import org.autorepo.server.domain.template.dto.request.ShareTemplateRequestDto;
 import org.autorepo.server.domain.template.dto.request.UploadTemplateRequestDto;
+import org.autorepo.server.domain.template.dto.response.DashboardTemplateResponseDto;
+import org.autorepo.server.domain.template.dto.response.RandomTemplateResponseDto;
+import org.autorepo.server.domain.template.dto.response.RecentTemplateResponseDto;
 import org.autorepo.server.domain.template.dto.response.TemplateListResponseDto;
 import org.autorepo.server.domain.template.entity.Template;
 import org.autorepo.server.domain.template.entity.TemplateType;
@@ -18,7 +23,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -31,6 +36,7 @@ public class TemplateService {
     private final UserRepository userRepository;
     private final TemplateRepository templateRepository;
     private final RepoRepository repoRepository;
+    private final ReadmeRepository readmeRepository;
 
     // 템플릿 업로드
     public void uploadTemplate(UploadTemplateRequestDto uploadTemplateRequestDto) {
@@ -64,26 +70,29 @@ public class TemplateService {
 
     // 템플릿 저장
     public void saveTemplate(ShareTemplateRequestDto shareTemplateRequestDto) {
+
         Repo repo = repoRepository.findByRepoUrl(shareTemplateRequestDto.repoUrl())
                 .orElseThrow(() -> new IllegalArgumentException(ErrorCode.REPO_NOT_FOUND.getMessage()));
 
-        boolean templateExists = templateRepository.findByRepoAndTitleAndContent(
-                repo,
-                shareTemplateRequestDto.title(),
-                shareTemplateRequestDto.content()
-        ).isPresent();
+        Template existingTemplate = templateRepository.findByRepoAndType(repo, shareTemplateRequestDto.type())
+                .orElse(null);
 
-        if (!templateExists) {
-            Template template = Template.builder()
+        if (existingTemplate != null) {
+            existingTemplate.updateContent(shareTemplateRequestDto.title(), shareTemplateRequestDto.content());
+            templateRepository.save(existingTemplate);
+        } else {
+            // 새로운 템플릿 생성
+            Template newTemplate = Template.builder()
                     .repo(repo)
                     .title(shareTemplateRequestDto.title())
                     .content(shareTemplateRequestDto.content())
                     .type(shareTemplateRequestDto.type())
                     .build();
 
-            templateRepository.save(template);
+            templateRepository.save(newTemplate);
         }
     }
+
 
     // 템플릿 조회
     public List<TemplateListResponseDto> getAllTemplate(TemplateType type) {
@@ -91,4 +100,66 @@ public class TemplateService {
                 .map(TemplateListResponseDto::of)
                 .collect(Collectors.toList());
     }
+
+    // 대시보드 템플릿 조회
+    public DashboardTemplateResponseDto getDashBoardTemplates(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException(ErrorCode.USER_NOT_FOUND.getMessage()));
+
+        // 전체 템플릿 리드미
+        List<Template> allTemplates = templateRepository.findAll();
+        List<Readme> allReadmes = readmeRepository.findAll();
+
+        // 내 템플릿, 리드미
+        List<Repo> userRepos = repoRepository.findAllByUser(user);
+        List<Template> myTemplates = templateRepository.findAllByRepoIn(userRepos);
+        List<Readme> myReadmes = readmeRepository.findAllByRepoIn(userRepos);
+
+        // 랜덤 템플릿
+        List<RandomTemplateResponseDto> randomTemplates = combineTemplatesAndReadmes(allTemplates, allReadmes).stream()
+                .sorted((o1, o2) -> new Random().nextInt(3) - 1)
+                .limit(5)
+                .map(template -> new RandomTemplateResponseDto(
+                        template.type(),
+                        template.title(),
+                        template.content()
+                ))
+                .toList();
+
+        // 최근 템플릿
+        List<RecentTemplateResponseDto> recentTemplates = combineTemplatesAndReadmes(myTemplates, myReadmes).stream()
+                .sorted(Comparator.comparing(RecentTemplateResponseDto::modifiedAt).reversed())
+                .limit(5)
+                .map(template -> new RecentTemplateResponseDto(
+                        template.modifiedAt(),
+                        template.type(),
+                        template.title(),
+                        template.content()
+                ))
+                .toList();
+
+        return new DashboardTemplateResponseDto(randomTemplates, recentTemplates);
+    }
+
+    //템플릿, 리드미 합치기
+    private List<RecentTemplateResponseDto> combineTemplatesAndReadmes(List<Template> templates, List<Readme> readmes) {
+        List<RecentTemplateResponseDto> result = new ArrayList<>();
+
+        templates.forEach(template -> result.add(new RecentTemplateResponseDto(
+                template.getModifiedAt(),
+                template.getType().name(),
+                template.getTitle(),
+                template.getContent()
+        )));
+
+        readmes.forEach(readme -> result.add(new RecentTemplateResponseDto(
+                readme.getModifiedAt(),
+                "README",
+                readme.getTitle(),
+                readme.getContent()
+        )));
+
+        return result;
+    }
+
 }

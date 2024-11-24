@@ -28,7 +28,7 @@ public enum ErrorCode {
      */
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 리소스를 찾을 수 없습니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 멤버를 찾을 수 없습니다."),
-
+    REPO_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 레포지토리를 찾을 수 없습니다."),
     /**
      * 405 Method Not Allowed
      */
