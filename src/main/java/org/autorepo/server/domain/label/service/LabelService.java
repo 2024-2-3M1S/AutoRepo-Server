@@ -1,6 +1,16 @@
 package org.autorepo.server.domain.label.service;
 
 import lombok.RequiredArgsConstructor;
+import org.autorepo.server.domain.repo.service.GitHubService;
+import org.autorepo.server.domain.label.dto.request.LabelListRequestDto;
+import org.autorepo.server.domain.label.dto.request.UploadLabalRequestDto;
+import org.autorepo.server.domain.user.entity.User;
+import org.autorepo.server.domain.user.repository.UserRepository;
+import org.autorepo.server.global.error.ErrorCode;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -8,4 +18,55 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 public class LabelService {
+    private static final String GITHUB_LABEL_API = "https://api.github.com/repos/%s/%s/labels";
+
+    private final GitHubService gitHubService;
+    private final UserRepository userRepository;
+
+    public void uploadLabel(UploadLabalRequestDto uploadLabelRequestDto) {
+        User user = userRepository.findById(uploadLabelRequestDto.userId())
+                .orElseThrow(() -> new IllegalArgumentException(ErrorCode.USER_NOT_FOUND.getMessage()));
+
+        HttpHeaders headers = new HttpHeaders();
+        String url = gitHubService.createGitHubApiUrl(GITHUB_LABEL_API, uploadLabelRequestDto.repoUrl(), null, headers, user.getGithubToken());
+
+        try {
+            deleteAllLabels(url, headers);
+            for (LabelListRequestDto label : uploadLabelRequestDto.labels()) {
+                createLabel(url, headers, label);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(ErrorCode.GITHUB_LABEL_CREATE_ERROR.getMessage(), e);
+        }
+    }
+
+    private void deleteAllLabels(String url, HttpHeaders headers) {
+        try {
+            String responseBody = gitHubService.sendRequest(url, HttpMethod.GET, headers, null).getBody();
+            if (responseBody == null || responseBody.trim().isEmpty()) return;
+
+            JSONArray existingLabels = new JSONArray(responseBody);
+            for (int i = 0; i < existingLabels.length(); i++) {
+                JSONObject label = existingLabels.getJSONObject(i);
+                String labelName = label.getString("name");
+                String deleteUrl = url + "/" + labelName;
+                gitHubService.sendRequest(deleteUrl, HttpMethod.DELETE, headers, null);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(ErrorCode.GITHUB_LABEL_DELETE_ERROR.getMessage(), e);
+        }
+    }
+
+    private void createLabel(String url, HttpHeaders headers, LabelListRequestDto label) {
+        JSONObject jsonBody = new JSONObject();
+        jsonBody.put("name", label.labelName());
+        jsonBody.put("color", label.color());
+        jsonBody.put("description", label.description());
+
+        try {
+            gitHubService.sendRequest(url, HttpMethod.POST, headers, jsonBody.toString());
+        } catch (Exception e) {
+            throw new RuntimeException(ErrorCode.GITHUB_LABEL_CREATE_ERROR.getMessage(), e);
+        }
+    }
 }
