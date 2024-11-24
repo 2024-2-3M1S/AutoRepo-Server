@@ -45,8 +45,12 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     //json
     implementation 'org.json:json:20230227'
-
-
+	//JWT
+	implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.5'
+	implementation group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.5'
+	implementation group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.5'
+	//Redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis:2.3.1.RELEASE'
 }
 
 tasks.named('test') {
