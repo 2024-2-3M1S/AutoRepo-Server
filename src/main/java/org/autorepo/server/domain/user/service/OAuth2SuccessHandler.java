@@ -35,17 +35,17 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         User user = userRepository.findByGithubId(githubEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String accessToken = jwtTokenProvider.issueAccessToken(user.getUserId());
-        String refreshToken = jwtTokenProvider.issueRefreshToken(user.getUserId());
+        String jwtAccessToken = jwtTokenProvider.issueAccessToken(user.getUserId());
+        String jwtRefreshToken = jwtTokenProvider.issueRefreshToken(user.getUserId());
 
         // RefreshToken 저장
-        tokenService.saveRefreshToken(user.getUserId(), refreshToken);
+        tokenService.saveRefreshToken(user.getUserId(), jwtRefreshToken);
 
         // 클라이언트로 토큰 전달
         response.setContentType("application/json");
         response.getWriter().write(
                 new ObjectMapper().writeValueAsString(
-                        new TokenResponse(accessToken, refreshToken)
+                        new TokenResponse(jwtAccessToken, jwtRefreshToken)
                 )
         );
     }

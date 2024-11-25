@@ -36,6 +36,7 @@ public enum ErrorCode {
      * 405 Method Not Allowed
      */
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "잘못된 HTTP method 요청입니다."),
+    UNSUPPORTED_OPERATION(HttpStatus.METHOD_NOT_ALLOWED, "지원되지 않는 작업입니다."),
 
     /**
      * 409 Conflict
