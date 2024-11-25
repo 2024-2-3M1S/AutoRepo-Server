@@ -3,7 +3,7 @@ package org.autorepo.server.domain.token.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.autorepo.server.domain.token.repository.TokenRepository;
-import org.autorepo.server.global.common.jwt.JwtTokenProvider;
+import org.autorepo.server.global.common.auth.jwt.JwtTokenProvider;
 import org.autorepo.server.global.error.ErrorCode;
 import org.autorepo.server.global.error.exception.RefreshTokenNotFoundException;
 import org.springframework.data.redis.core.RedisTemplate;
