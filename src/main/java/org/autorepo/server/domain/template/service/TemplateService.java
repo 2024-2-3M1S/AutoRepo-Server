@@ -39,8 +39,8 @@ public class TemplateService {
     private final ReadmeRepository readmeRepository;
 
     // 템플릿 업로드
-    public void uploadTemplate(UploadTemplateRequestDto uploadTemplateRequestDto) {
-        User user = userRepository.findById(uploadTemplateRequestDto.userId())
+    public void uploadTemplate(UploadTemplateRequestDto uploadTemplateRequestDto, Long userId) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException(ErrorCode.USER_NOT_FOUND.getMessage()));
 
         // PR/ISSUE 템플릿 구분

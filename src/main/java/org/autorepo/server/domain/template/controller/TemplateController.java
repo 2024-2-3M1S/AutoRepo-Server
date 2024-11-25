@@ -8,6 +8,7 @@ import org.autorepo.server.domain.template.dto.response.TemplateListResponseDto;
 import org.autorepo.server.domain.template.entity.TemplateType;
 import org.autorepo.server.domain.template.service.TemplateService;
 import org.autorepo.server.global.common.SuccessResponse;
+import org.autorepo.server.global.common.auth.resolver.UserId;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,8 +22,8 @@ public class TemplateController {
     private final TemplateService templateService;
 
     @PostMapping("/upload")
-    public ResponseEntity<SuccessResponse<?>> uploadTemplate(@RequestBody UploadTemplateRequestDto uploadTemplateRequestDto) {
-        templateService.uploadTemplate(uploadTemplateRequestDto);
+    public ResponseEntity<SuccessResponse<?>> uploadTemplate(@RequestBody UploadTemplateRequestDto uploadTemplateRequestDto, @UserId Long userId) {
+        templateService.uploadTemplate(uploadTemplateRequestDto,userId);
         return SuccessResponse.created(null);
     }
 
@@ -40,7 +41,7 @@ public class TemplateController {
     }
 
     @GetMapping("/dash-board")
-    public ResponseEntity<SuccessResponse<?>> getDashBoard(@RequestParam Long userId) {
+    public ResponseEntity<SuccessResponse<?>> getDashBoard(@UserId Long userId) {
         DashboardTemplateResponseDto dashboardTemplateResponseDto = templateService.getDashBoardTemplates(userId);
         return SuccessResponse.ok(dashboardTemplateResponseDto);
     }

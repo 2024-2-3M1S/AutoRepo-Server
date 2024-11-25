@@ -30,8 +30,9 @@ public class LabelService {
     private final LabelRepository labelRepository;
     private final RepoRepository repoRepository;
 
-    public void uploadLabel(UploadLabalRequestDto uploadLabelRequestDto) {
-        User user = userRepository.findById(uploadLabelRequestDto.userId())
+    public void uploadLabel(UploadLabalRequestDto uploadLabelRequestDto, Long userId) {
+
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException(ErrorCode.USER_NOT_FOUND.getMessage()));
 
         HttpHeaders headers = new HttpHeaders();
