@@ -28,8 +28,8 @@ public class SwaggerConfig {
 
     private Info apiInfo() {
         return new Info()
-                .title("DGU 1921 Swagger")
-                .description("Team 1921 API")
+                .title("AutoRepo Swagger")
+                .description("Team 3M1S API")
                 .version("1.0.0");
     }
 }

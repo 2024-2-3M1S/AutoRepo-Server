@@ -17,6 +17,7 @@ public enum ErrorCode {
      * 401 Unauthorized
      */
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "리소스 접근 권한이 없습니다."),
+    JWT_UNAUTHORIZED_EXCEPTION(HttpStatus.UNAUTHORIZED, "사용자의 로그인 검증을 실패했습니다."),
 
     /**
      * 403 Forbidden
@@ -26,7 +27,8 @@ public enum ErrorCode {
     /**
      * 404 Not Found
      */
-    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 멤버를 찾을 수 없습니다."),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당하는 유저를 찾을 수 없습니다."),
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "리프레쉬 토큰을 찾을 수 없습니다."),
 
     /**
      * 405 Method Not Allowed
