@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.autorepo.server.global.error.ErrorCode;
 import org.autorepo.server.global.error.dto.ErrorResponse;
 import org.autorepo.server.global.error.exception.BusinessException;
+import org.autorepo.server.global.error.exception.RefreshTokenNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
@@ -75,6 +76,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException e) {
         log.error(">>> handle: AuthenticationException ", e);
+        final ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
+        final ErrorResponse errorResponse = ErrorResponse.of(errorCode);
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(errorResponse);
+    }
+
+    /**
+     * 리프레시 토큰 실패 처리
+     */
+    @ExceptionHandler(RefreshTokenNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleRefreshTokenNotFoundException(RefreshTokenNotFoundException e) {
+        log.error(">>> handle: RefreshTokenNotFoundException ", e);
         final ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
         final ErrorResponse errorResponse = ErrorResponse.of(errorCode);
         return ResponseEntity.status(errorCode.getHttpStatus()).body(errorResponse);
