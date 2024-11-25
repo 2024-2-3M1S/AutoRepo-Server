@@ -1,25 +1,29 @@
 package org.autorepo.server.domain.template.service;
 
 import lombok.RequiredArgsConstructor;
+import org.autorepo.server.domain.readme.entity.Readme;
+import org.autorepo.server.domain.readme.repository.ReadmeRepository;
 import org.autorepo.server.domain.repo.entity.Repo;
 import org.autorepo.server.domain.repo.repository.RepoRepository;
+import org.autorepo.server.domain.repo.service.GitHubService;
 import org.autorepo.server.domain.template.dto.request.ShareTemplateRequestDto;
-import org.autorepo.server.domain.template.dto.request.TemplateListResponseDto;
 import org.autorepo.server.domain.template.dto.request.UploadTemplateRequestDto;
+import org.autorepo.server.domain.template.dto.response.DashboardTemplateResponseDto;
+import org.autorepo.server.domain.template.dto.response.RandomTemplateResponseDto;
+import org.autorepo.server.domain.template.dto.response.RecentTemplateResponseDto;
+import org.autorepo.server.domain.template.dto.response.TemplateListResponseDto;
 import org.autorepo.server.domain.template.entity.Template;
 import org.autorepo.server.domain.template.entity.TemplateType;
 import org.autorepo.server.domain.template.repository.TemplateRepository;
 import org.autorepo.server.domain.user.entity.User;
 import org.autorepo.server.domain.user.repository.UserRepository;
+import org.autorepo.server.global.error.ErrorCode;
 import org.json.JSONObject;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -27,115 +31,135 @@ import java.util.stream.Collectors;
 public class TemplateService {
 
     private static final String GITHUB_API_URL = "https://api.github.com/repos/%s/%s/contents/%s";
-    private static final String PR_TEMPLATE_PATH = ".github/pull_request_template.md";
-    private static final String ISSUE_TEMPLATE_PATH = ".github/ISSUE_TEMPLATE/issue_template.md";
 
+    private final GitHubService gitHubService;
     private final UserRepository userRepository;
     private final TemplateRepository templateRepository;
     private final RepoRepository repoRepository;
+    private final ReadmeRepository readmeRepository;
 
-    // PR/ISSUE 템플릿 업로드
+    // 템플릿 업로드
     public void uploadTemplate(UploadTemplateRequestDto uploadTemplateRequestDto) {
-
         User user = userRepository.findById(uploadTemplateRequestDto.userId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 ID를 가진 사용자를 찾을 수 없습니다: " + uploadTemplateRequestDto.userId()));
+                .orElseThrow(() -> new IllegalArgumentException(ErrorCode.USER_NOT_FOUND.getMessage()));
 
+        // PR/ISSUE 템플릿 구분
         boolean isPR = uploadTemplateRequestDto.type() == TemplateType.PR;
-
-        //이슈 메타 데이터 정보 임시 고정
         String metaContent = "---\nname: Issue template\nabout: Issue template\ntitle: ''\nlabels: ''\nassignees: ''\n---";
         String content = isPR ? uploadTemplateRequestDto.content() : metaContent + "\n" + uploadTemplateRequestDto.content();
-        String path = isPR ? PR_TEMPLATE_PATH : ISSUE_TEMPLATE_PATH;
-
-        saveFileToGitHub(uploadTemplateRequestDto.repoUrl(), path, content, uploadTemplateRequestDto.type(), user.getGithubToken());
-    }
-
-
-    // GitHub API 요청
-    private void saveFileToGitHub(String repoUrl, String path, String content, TemplateType type, String token) {
-        RestTemplate restTemplate = new RestTemplate();
-
-        String[] repoInfo = parseRepositoryUrl(repoUrl);
-        String owner = repoInfo[0];
-        String repo = repoInfo[1];
-        String url = String.format(GITHUB_API_URL, owner, repo, path);
+        String path = isPR ? ".github/pull_request_template.md" : ".github/ISSUE_TEMPLATE/issue_template.md";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + token);
-        headers.set("Content-Type", "application/json");
-
-        String sha = getFileShaIfExists(restTemplate, url, headers);
+        String url = gitHubService.createGitHubApiUrl(GITHUB_API_URL, uploadTemplateRequestDto.repoUrl(), path, headers, user.getGithubToken());
         String base64Content = java.util.Base64.getEncoder().encodeToString(content.getBytes());
-
         JSONObject jsonBody = new JSONObject();
-        jsonBody.put("message", "Update " + type + " Template");
+        jsonBody.put("message", "Update " + uploadTemplateRequestDto.type() + " Template");
         jsonBody.put("content", base64Content);
-        if (sha != null) {
-            jsonBody.put("sha", sha);
-        }
 
-        HttpEntity<String> request = new HttpEntity<>(jsonBody.toString(), headers);
-
+        //기존 템플릿 존재 여부 확인
         try {
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, request, String.class);
-            if (!response.getStatusCode().is2xxSuccessful()) {
-                throw new RuntimeException("파일 저장 실패: " + response.getBody());
+            String sha = gitHubService.getFileSha(url, headers);
+            if (sha != null) {
+                jsonBody.put("sha", sha);
             }
+            gitHubService.sendRequest(url, HttpMethod.PUT, headers, jsonBody.toString());
         } catch (Exception e) {
-            throw new RuntimeException("파일 저장 중 오류 발생: " + e.getMessage(), e);
+            throw new RuntimeException(ErrorCode.GITHUB_TEMPLATE_UPLOAD_ERROR.getMessage(), e);
         }
-    }
-
-    // repo URL에서 owner와 repo 정보를 파싱
-    private String[] parseRepositoryUrl(String repoUrl) {
-        String[] parts = repoUrl.split("/");
-        if (parts.length < 5) {
-            throw new IllegalArgumentException("잘못된 저장소 URL 형식입니다.");
-        }
-        String owner = parts[3];
-        String repo = parts[4].replace(".git", "");
-        return new String[]{owner, repo};
-    }
-
-    // GitHub 저장소에서 SHA값 조회(이전 파일이 존재하는지 확인)
-    private String getFileShaIfExists(RestTemplate restTemplate, String url, HttpHeaders headers) {
-        try {
-            HttpEntity<Void> request = new HttpEntity<>(headers);
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
-            if (response.getStatusCode().is2xxSuccessful()) {
-                return new JSONObject(response.getBody()).getString("sha");
-            }
-        } catch (Exception ignored) {
-            return null;
-        }
-        return null;
     }
 
     // 템플릿 저장
     public void saveTemplate(ShareTemplateRequestDto shareTemplateRequestDto) {
 
-        boolean templateExists = templateRepository.findByTitleAndContent(shareTemplateRequestDto.title(), shareTemplateRequestDto.content())
-                .isPresent();
+        Repo repo = repoRepository.findByRepoUrl(shareTemplateRequestDto.repoUrl())
+                .orElseThrow(() -> new IllegalArgumentException(ErrorCode.REPO_NOT_FOUND.getMessage()));
 
-        if (!templateExists) {
-            Template template = Template.builder()
+        Template existingTemplate = templateRepository.findByRepoAndType(repo, shareTemplateRequestDto.type())
+                .orElse(null);
+
+        if (existingTemplate != null) {
+            existingTemplate.updateContent(shareTemplateRequestDto.title(), shareTemplateRequestDto.content());
+            templateRepository.save(existingTemplate);
+        } else {
+            // 새로운 템플릿 생성
+            Template newTemplate = Template.builder()
+                    .repo(repo)
                     .title(shareTemplateRequestDto.title())
                     .content(shareTemplateRequestDto.content())
                     .type(shareTemplateRequestDto.type())
                     .build();
 
-            templateRepository.save(template);
+            templateRepository.save(newTemplate);
         }
     }
 
-    // 템플릿 리스트 조회
-    public List<TemplateListResponseDto> getAllTemplate(TemplateType type) {
-        List<Template> templates = templateRepository.findAllByType(type);
 
-        return templates.stream()
+    // 템플릿 조회
+    public List<TemplateListResponseDto> getAllTemplate(TemplateType type) {
+        return templateRepository.findAllByType(type).stream()
                 .map(TemplateListResponseDto::of)
                 .collect(Collectors.toList());
     }
 
+    // 대시보드 템플릿 조회
+    public DashboardTemplateResponseDto getDashBoardTemplates(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException(ErrorCode.USER_NOT_FOUND.getMessage()));
+
+        // 전체 템플릿 리드미
+        List<Template> allTemplates = templateRepository.findAll();
+        List<Readme> allReadmes = readmeRepository.findAll();
+
+        // 내 템플릿, 리드미
+        List<Repo> userRepos = repoRepository.findAllByUser(user);
+        List<Template> myTemplates = templateRepository.findAllByRepoIn(userRepos);
+        List<Readme> myReadmes = readmeRepository.findAllByRepoIn(userRepos);
+
+        // 랜덤 템플릿
+        List<RandomTemplateResponseDto> randomTemplates = combineTemplatesAndReadmes(allTemplates, allReadmes).stream()
+                .sorted((o1, o2) -> new Random().nextInt(3) - 1)
+                .limit(5)
+                .map(template -> new RandomTemplateResponseDto(
+                        template.type(),
+                        template.title(),
+                        template.content()
+                ))
+                .toList();
+
+        // 최근 템플릿
+        List<RecentTemplateResponseDto> recentTemplates = combineTemplatesAndReadmes(myTemplates, myReadmes).stream()
+                .sorted(Comparator.comparing(RecentTemplateResponseDto::modifiedAt).reversed())
+                .limit(5)
+                .map(template -> new RecentTemplateResponseDto(
+                        template.modifiedAt(),
+                        template.type(),
+                        template.title(),
+                        template.content()
+                ))
+                .toList();
+
+        return new DashboardTemplateResponseDto(randomTemplates, recentTemplates);
+    }
+
+    //템플릿, 리드미 합치기
+    private List<RecentTemplateResponseDto> combineTemplatesAndReadmes(List<Template> templates, List<Readme> readmes) {
+        List<RecentTemplateResponseDto> result = new ArrayList<>();
+
+        templates.forEach(template -> result.add(new RecentTemplateResponseDto(
+                template.getModifiedAt(),
+                template.getType().name(),
+                template.getTitle(),
+                template.getContent()
+        )));
+
+        readmes.forEach(readme -> result.add(new RecentTemplateResponseDto(
+                readme.getModifiedAt(),
+                "README",
+                readme.getTitle(),
+                readme.getContent()
+        )));
+
+        return result;
+    }
 
 }

@@ -27,6 +27,8 @@ public enum ErrorCode {
     /**
      * 404 Not Found
      */
+    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 리소스를 찾을 수 없습니다."),
+    REPO_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 레포지토리를 찾을 수 없습니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당하는 유저를 찾을 수 없습니다."),
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "리프레쉬 토큰을 찾을 수 없습니다."),
 
@@ -41,9 +43,19 @@ public enum ErrorCode {
     CONFLICT(HttpStatus.CONFLICT, "이미 존재하는 리소스입니다."),
 
     /**
+     * 422 Unprocessable Entity
+     */
+    UNPROCESSABLE_ENTITY(HttpStatus.UNPROCESSABLE_ENTITY, "요청 처리에 실패했습니다."),
+
+    /**
      * 500 Internal Server Error
      */
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류입니다.");
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류입니다."),
+    GITHUB_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "GitHub API 호출 중 오류가 발생했습니다."),
+    GITHUB_LABEL_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "깃허브 기존 라벨 삭제 중 오류가 발생했습니다."),
+    GITHUB_LABEL_CREATE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "깃허브 라벨 생성 중 오류가 발생했습니다."),
+    GITHUB_TEMPLATE_UPLOAD_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "깃허브 템플릿 업로드 중 오류가 발생했습니다."),
+    LABEL_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "라벨 삭제 중 오류가 발생했습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

@@ -3,6 +3,7 @@ package org.autorepo.server.domain.template.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.autorepo.server.domain.repo.entity.Repo;
+import org.autorepo.server.global.common.BaseTimeEntity;
 
 @Getter
 @AllArgsConstructor
@@ -10,7 +11,7 @@ import org.autorepo.server.domain.repo.entity.Repo;
 @NoArgsConstructor
 @Table(name = "template")
 @Entity
-public class Template {
+public class Template extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,4 +25,8 @@ public class Template {
     @JoinColumn(name = "repo_id")
     private Repo repo;
 
+    public void updateContent(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
 }
