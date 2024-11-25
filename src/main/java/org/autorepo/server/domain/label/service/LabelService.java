@@ -1,9 +1,14 @@
 package org.autorepo.server.domain.label.service;
 
 import lombok.RequiredArgsConstructor;
-import org.autorepo.server.domain.repo.service.GitHubService;
 import org.autorepo.server.domain.label.dto.request.LabelListRequestDto;
 import org.autorepo.server.domain.label.dto.request.UploadLabalRequestDto;
+import org.autorepo.server.domain.label.entity.Label;
+import org.autorepo.server.domain.label.entity.LabelGenerateType;
+import org.autorepo.server.domain.label.repository.LabelRepository;
+import org.autorepo.server.domain.repo.entity.Repo;
+import org.autorepo.server.domain.repo.repository.RepoRepository;
+import org.autorepo.server.domain.repo.service.GitHubService;
 import org.autorepo.server.domain.user.entity.User;
 import org.autorepo.server.domain.user.repository.UserRepository;
 import org.autorepo.server.global.error.ErrorCode;
@@ -22,6 +27,8 @@ public class LabelService {
 
     private final GitHubService gitHubService;
     private final UserRepository userRepository;
+    private final LabelRepository labelRepository;
+    private final RepoRepository repoRepository;
 
     public void uploadLabel(UploadLabalRequestDto uploadLabelRequestDto) {
         User user = userRepository.findById(uploadLabelRequestDto.userId())
@@ -30,17 +37,22 @@ public class LabelService {
         HttpHeaders headers = new HttpHeaders();
         String url = gitHubService.createGitHubApiUrl(GITHUB_LABEL_API, uploadLabelRequestDto.repoUrl(), null, headers, user.getGithubToken());
 
+        Repo repo = repoRepository.findByRepoUrl(uploadLabelRequestDto.repoUrl())
+                .orElseThrow(() -> new IllegalArgumentException(ErrorCode.REPO_NOT_FOUND.getMessage()));
+
         try {
-            deleteAllLabels(url, headers);
-            for (LabelListRequestDto label : uploadLabelRequestDto.labels()) {
-                createLabel(url, headers, label);
+            deleteAllGitHubLabels(url, headers);
+            deleteAllDBLabels(uploadLabelRequestDto.labelGenerateType(), repo);
+
+            for (LabelListRequestDto labelDto : uploadLabelRequestDto.labels()) {
+                createAndSaveLabel(url, headers, labelDto, repo, uploadLabelRequestDto.labelGenerateType());
             }
         } catch (Exception e) {
             throw new RuntimeException(ErrorCode.GITHUB_LABEL_CREATE_ERROR.getMessage(), e);
         }
     }
 
-    private void deleteAllLabels(String url, HttpHeaders headers) {
+    private void deleteAllGitHubLabels(String url, HttpHeaders headers) {
         try {
             String responseBody = gitHubService.sendRequest(url, HttpMethod.GET, headers, null).getBody();
             if (responseBody == null || responseBody.trim().isEmpty()) return;
@@ -57,14 +69,32 @@ public class LabelService {
         }
     }
 
-    private void createLabel(String url, HttpHeaders headers, LabelListRequestDto label) {
+    private void deleteAllDBLabels(LabelGenerateType labelGenerateType, Repo repo) {
+        try {
+            labelRepository.deleteByLabelGenerateTypeAndRepo(labelGenerateType, repo);
+        } catch (Exception e) {
+            throw new RuntimeException(ErrorCode.LABEL_DELETE_ERROR.getMessage(), e);
+        }
+    }
+
+    private void createAndSaveLabel(String url, HttpHeaders headers, LabelListRequestDto labelDto, Repo repo, LabelGenerateType labelGenerateType) {
         JSONObject jsonBody = new JSONObject();
-        jsonBody.put("name", label.labelName());
-        jsonBody.put("color", label.color());
-        jsonBody.put("description", label.description());
+        jsonBody.put("name", labelDto.labelName());
+        jsonBody.put("color", labelDto.color());
+        jsonBody.put("description", labelDto.description());
 
         try {
             gitHubService.sendRequest(url, HttpMethod.POST, headers, jsonBody.toString());
+
+            Label newLabel = Label.builder()
+                    .name(labelDto.labelName())
+                    .color(labelDto.color())
+                    .labelDescription(labelDto.description())
+                    .labelGenerateType(labelGenerateType)
+                    .repo(repo)
+                    .build();
+            labelRepository.save(newLabel);
+
         } catch (Exception e) {
             throw new RuntimeException(ErrorCode.GITHUB_LABEL_CREATE_ERROR.getMessage(), e);
         }

@@ -49,9 +49,10 @@ public enum ErrorCode {
      */
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류입니다."),
     GITHUB_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "GitHub API 호출 중 오류가 발생했습니다."),
-    GITHUB_LABEL_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "기존 라벨 삭제 중 오류가 발생했습니다."),
-    GITHUB_LABEL_CREATE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "라벨 생성 중 오류가 발생했습니다."),
-    GITHUB_TEMPLATE_UPLOAD_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "템플릿 업로드 중 오류가 발생했습니다.");
+    GITHUB_LABEL_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "깃허브 기존 라벨 삭제 중 오류가 발생했습니다."),
+    GITHUB_LABEL_CREATE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "깃허브 라벨 생성 중 오류가 발생했습니다."),
+    GITHUB_TEMPLATE_UPLOAD_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "깃허브 템플릿 업로드 중 오류가 발생했습니다."),
+    LABEL_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "라벨 삭제 중 오류가 발생했습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
