@@ -1,5 +1,6 @@
 package org.autorepo.server.domain.user.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.autorepo.server.domain.token.service.TokenService;
 import org.autorepo.server.domain.user.entity.User;
@@ -12,6 +13,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+
 import static org.autorepo.server.global.common.SuccessCode.LOGOUT;
 
 @RequiredArgsConstructor
@@ -21,6 +24,12 @@ public class UserController {
 
     private final TokenService tokenService;
     private final UserRepository userRepository;
+
+    @GetMapping("/login")
+    public void redirectToGitHub(HttpServletResponse response) throws IOException {
+        response.sendRedirect("/oauth2/authorization/github");
+    }
+
     @GetMapping("/info")
     public ResponseEntity<?> getUserInfo(Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
