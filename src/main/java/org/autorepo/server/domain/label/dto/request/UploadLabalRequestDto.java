@@ -6,7 +6,6 @@ import java.util.List;
 
 public record UploadLabalRequestDto(
         String repoUrl,
-        LabelGenerateType labelGenerateType,
         List<LabelListRequestDto> labels
 ) {
 }
