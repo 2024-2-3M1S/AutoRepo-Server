@@ -93,6 +93,17 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * UserDetailsService에서 발생하는 UnsupportedOperationException 처리
+     */
+    @ExceptionHandler(UnsupportedOperationException.class)
+    protected ResponseEntity<ErrorResponse> handleUnsupportedOperationException(UnsupportedOperationException e) {
+        log.error(">>> handle: UnsupportedOperationException ", e);
+        final ErrorCode errorCode = ErrorCode.UNSUPPORTED_OPERATION;
+        final ErrorResponse errorResponse = ErrorResponse.of(errorCode);
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(errorResponse);
+    }
+
+    /**
      * 기타 모든 예외 처리
      */
     @ExceptionHandler(Exception.class)

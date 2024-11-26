@@ -42,7 +42,20 @@ public class TokenService {
 
     // RefreshToken 삭제
     public void deleteRefreshToken(Long userId) {
-        redisTemplate.delete(String.valueOf(userId));
+        String key = String.valueOf(userId);
+        redisTemplate.delete(key);
+        log.info("RefreshToken for userId {} deleted successfully.", userId);
+    }
+
+    // 로그아웃 처리
+    public void logout(Long userId) {
+        deleteRefreshToken(userId);
+
+        // AccessToken 무효화 (Redis 블랙리스트 추가)
+        String blacklistKey = "blacklist:" + userId;
+        redisTemplate.opsForValue().set(blacklistKey, "true", Duration.ofHours(1)); // 1시간 블랙리스트 유지
+
+        log.info("User with ID {} logged out. RefreshToken deleted and AccessToken blacklisted.", userId);
     }
 
     // AccessToken 생성

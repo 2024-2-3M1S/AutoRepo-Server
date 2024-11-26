@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -22,7 +21,7 @@ public class SecurityConfig {
     private final OAuth2FailureHandler oAuth2FailureHandler;
     private final CustomOAuth2UserService customOAuth2UserService;
 
-    private static final String[] WHITE_LIST = {"/api/user", "/api/token/refresh"};
+    private static final String[] WHITE_LIST = {"/api/user/**", "/api/token/refresh"};
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -33,10 +32,11 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/favicon.ico").permitAll()
                         .requestMatchers(WHITE_LIST).permitAll()
-                        .anyRequest().permitAll()
+                        .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> {
                     oauth2
+                            .loginPage("/api/user/login") // 클라이언트에서 /login 호출 시 GitHub OAuth2로 리다이렉트
                             .successHandler(oAuth2SuccessHandler)
                             .failureHandler(oAuth2FailureHandler)
                             .userInfoEndpoint(userInfo -> userInfo

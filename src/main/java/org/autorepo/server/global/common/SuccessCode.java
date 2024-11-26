@@ -12,6 +12,7 @@ public enum SuccessCode {
      * 200 Ok
      */
     OK(HttpStatus.OK, "요청이 성공했습니다."),
+    LOGOUT(HttpStatus.OK, "로그아웃 되었습니다."),
 
     /**
      * 201 Created
