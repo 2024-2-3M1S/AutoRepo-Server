@@ -31,10 +31,12 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/favicon.ico").permitAll()
                         .requestMatchers(WHITE_LIST).permitAll()
-                        .anyRequest().authenticated() // 그 외의 가
+                        .anyRequest().authenticated()
+
                 )
                 .oauth2Login(oauth2 -> {
                     oauth2
+                            .loginPage("/api/user/login") // 클라이언트에서 /login 호출 시 GitHub OAuth2로 리다이렉트
                             .successHandler(oAuth2SuccessHandler)
                             .failureHandler(oAuth2FailureHandler)
                             .userInfoEndpoint(userInfo -> userInfo
