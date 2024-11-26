@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.autorepo.server.domain.user.service.CustomOAuth2UserService;
 import org.autorepo.server.domain.user.service.OAuth2FailureHandler;
 import org.autorepo.server.domain.user.service.OAuth2SuccessHandler;
-import org.autorepo.server.global.common.jwt.JwtAuthenticationFilter;
+import org.autorepo.server.global.common.auth.jwt.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -28,11 +28,11 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/template/**").permitAll() // 토큰 없이 임시 허용
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/favicon.ico").permitAll()
                         .requestMatchers(WHITE_LIST).permitAll()
                         .anyRequest().authenticated()
+
                 )
                 .oauth2Login(oauth2 -> {
                     oauth2

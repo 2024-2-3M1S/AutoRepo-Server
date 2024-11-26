@@ -27,32 +27,25 @@ public class LabelService {
 
     private final GitHubService gitHubService;
     private final UserRepository userRepository;
-    private final LabelRepository labelRepository;
-    private final RepoRepository repoRepository;
 
-    public void uploadLabel(UploadLabalRequestDto uploadLabelRequestDto) {
-        User user = userRepository.findById(uploadLabelRequestDto.userId())
+    public void uploadLabel(UploadLabalRequestDto uploadLabelRequestDto, Long userId) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException(ErrorCode.USER_NOT_FOUND.getMessage()));
 
         HttpHeaders headers = new HttpHeaders();
         String url = gitHubService.createGitHubApiUrl(GITHUB_LABEL_API, uploadLabelRequestDto.repoUrl(), null, headers, user.getGithubToken());
 
-        Repo repo = repoRepository.findByRepoUrl(uploadLabelRequestDto.repoUrl())
-                .orElseThrow(() -> new IllegalArgumentException(ErrorCode.REPO_NOT_FOUND.getMessage()));
-
         try {
-            deleteAllGitHubLabels(url, headers);
-            deleteAllDBLabels(uploadLabelRequestDto.labelGenerateType(), repo);
-
-            for (LabelListRequestDto labelDto : uploadLabelRequestDto.labels()) {
-                createAndSaveLabel(url, headers, labelDto, repo, uploadLabelRequestDto.labelGenerateType());
+            deleteAllLabels(url, headers);
+            for (LabelListRequestDto label : uploadLabelRequestDto.labels()) {
+                createLabel(url, headers, label);
             }
         } catch (Exception e) {
             throw new RuntimeException(ErrorCode.GITHUB_LABEL_CREATE_ERROR.getMessage(), e);
         }
     }
 
-    private void deleteAllGitHubLabels(String url, HttpHeaders headers) {
+    private void deleteAllLabels(String url, HttpHeaders headers) {
         try {
             String responseBody = gitHubService.sendRequest(url, HttpMethod.GET, headers, null).getBody();
             if (responseBody == null || responseBody.trim().isEmpty()) return;
@@ -69,6 +62,20 @@ public class LabelService {
         }
     }
 
+    private void createLabel(String url, HttpHeaders headers, LabelListRequestDto label) {
+        JSONObject jsonBody = new JSONObject();
+        jsonBody.put("name", label.labelName());
+        jsonBody.put("color", label.color());
+        jsonBody.put("description", label.description());
+
+        try {
+            gitHubService.sendRequest(url, HttpMethod.POST, headers, jsonBody.toString());
+        } catch (Exception e) {
+            throw new RuntimeException(ErrorCode.GITHUB_LABEL_CREATE_ERROR.getMessage(), e);
+        }
+    }
+
+/* DB 저장 로직
     private void deleteAllDBLabels(LabelGenerateType labelGenerateType, Repo repo) {
         try {
             labelRepository.deleteByLabelGenerateTypeAndRepo(labelGenerateType, repo);
@@ -99,4 +106,6 @@ public class LabelService {
             throw new RuntimeException(ErrorCode.GITHUB_LABEL_CREATE_ERROR.getMessage(), e);
         }
     }
+
+ */
 }

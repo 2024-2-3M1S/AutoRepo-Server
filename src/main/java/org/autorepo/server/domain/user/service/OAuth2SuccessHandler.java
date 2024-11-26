@@ -8,7 +8,7 @@ import org.autorepo.server.domain.token.dto.TokenResponse;
 import org.autorepo.server.domain.token.service.TokenService;
 import org.autorepo.server.domain.user.entity.User;
 import org.autorepo.server.domain.user.repository.UserRepository;
-import org.autorepo.server.global.common.jwt.JwtTokenProvider;
+import org.autorepo.server.global.common.auth.jwt.JwtTokenProvider;
 import org.autorepo.server.global.error.exception.BusinessException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;

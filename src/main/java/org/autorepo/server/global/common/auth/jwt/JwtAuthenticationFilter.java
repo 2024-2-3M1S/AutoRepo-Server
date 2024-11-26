@@ -1,4 +1,4 @@
-package org.autorepo.server.global.common.jwt;
+package org.autorepo.server.global.common.auth.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
