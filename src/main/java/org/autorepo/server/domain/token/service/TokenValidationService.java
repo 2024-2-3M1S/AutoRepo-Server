@@ -22,7 +22,6 @@ public class TokenValidationService {
         for (User user : users) {
             if (!tokenValidator.isTokenValid(user.getGithubToken())) {
                 System.out.println("Token expired for user: " + user.getGithubId());
-                // 사용자 알림 또는 로그아웃 처리 로직 추가 가능
             }
         }
     }

@@ -9,12 +9,15 @@ import org.autorepo.server.domain.token.service.TokenService;
 import org.autorepo.server.domain.user.entity.User;
 import org.autorepo.server.domain.user.repository.UserRepository;
 import org.autorepo.server.global.common.jwt.JwtTokenProvider;
+import org.autorepo.server.global.error.exception.BusinessException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+
+import static org.autorepo.server.global.error.ErrorCode.USER_NOT_FOUND;
 
 @Component
 @RequiredArgsConstructor
@@ -33,7 +36,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         }
 
         User user = userRepository.findByGithubId(githubEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new BusinessException(USER_NOT_FOUND));
 
         String jwtAccessToken = jwtTokenProvider.issueAccessToken(user.getUserId());
         String jwtRefreshToken = jwtTokenProvider.issueRefreshToken(user.getUserId());

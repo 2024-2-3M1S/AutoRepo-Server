@@ -21,7 +21,7 @@ public class SecurityConfig {
     private final OAuth2FailureHandler oAuth2FailureHandler;
     private final CustomOAuth2UserService customOAuth2UserService;
 
-    private static final String[] WHITE_LIST = {"/favicon.ico", "/api/user", "/api/token/refresh"};
+    private static final String[] WHITE_LIST = {"/api/user/**", "/api/token/refresh"};
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -30,11 +30,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/template/**").permitAll() // 토큰 없이 임시 허용
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/favicon.ico").permitAll()
                         .requestMatchers(WHITE_LIST).permitAll()
-                        .anyRequest().permitAll()
+                        .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> {
                     oauth2
+                            .loginPage("/api/user/login") // 클라이언트에서 /login 호출 시 GitHub OAuth2로 리다이렉트
                             .successHandler(oAuth2SuccessHandler)
                             .failureHandler(oAuth2FailureHandler)
                             .userInfoEndpoint(userInfo -> userInfo
