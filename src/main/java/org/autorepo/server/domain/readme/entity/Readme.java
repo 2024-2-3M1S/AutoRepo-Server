@@ -20,6 +20,7 @@ public class Readme extends BaseTimeEntity {
     @Column(columnDefinition = "TEXT")
     private String installation;
     private String stack;
+    @Column(columnDefinition = "TEXT")
     private String content;
     @ManyToOne
     @JoinColumn(name = "repo_id")
