@@ -2,6 +2,7 @@ package org.autorepo.server.global.utils;
 
 import lombok.RequiredArgsConstructor;
 import org.autorepo.server.global.error.ErrorCode;
+import org.autorepo.server.global.error.exception.InternalServerException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -9,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
+
+import static org.autorepo.server.global.error.ErrorCode.*;
 
 @RequiredArgsConstructor
 @Service
@@ -19,7 +22,8 @@ public class GitHubService {
     public String[] parseRepositoryUrl(String repoUrl) {
         String[] parts = repoUrl.split("/");
         if (parts.length < 5) {
-            throw new IllegalArgumentException(ErrorCode.BAD_REQUEST.getMessage());
+            throw new InternalServerException(REPO_PARSE_ERROR);
+
         }
         String owner = parts[3];
         String repo = parts[4].replace(".git", "");
@@ -40,7 +44,7 @@ public class GitHubService {
         try {
             return restTemplate.exchange(url, method, request, String.class);
         } catch (HttpClientErrorException e) {
-            throw new RuntimeException(ErrorCode.GITHUB_API_ERROR.getMessage() + ": " + e.getMessage(), e);
+            throw new InternalServerException(GITHUB_API_ERROR);
         }
     }
 
@@ -52,7 +56,7 @@ public class GitHubService {
                 return new org.json.JSONObject(response.getBody()).getString("sha");
             }
         } catch (Exception e) {
-            throw new RuntimeException(ErrorCode.UNPROCESSABLE_ENTITY.getMessage(), e);
+            throw new InternalServerException(UNPROCESSABLE_ENTITY);
         }
         return null;
     }

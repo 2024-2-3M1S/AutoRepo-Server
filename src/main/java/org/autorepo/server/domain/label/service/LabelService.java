@@ -7,6 +7,8 @@ import org.autorepo.server.domain.label.dto.request.UploadLabalRequestDto;
 import org.autorepo.server.domain.user.entity.User;
 import org.autorepo.server.domain.user.repository.UserRepository;
 import org.autorepo.server.global.error.ErrorCode;
+import org.autorepo.server.global.error.exception.EntityNotFoundException;
+import org.autorepo.server.global.error.exception.InternalServerException;
 import org.autorepo.server.global.utils.GitHubService;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -14,6 +16,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.autorepo.server.global.error.ErrorCode.*;
 
 @RequiredArgsConstructor
 @Service
@@ -26,7 +30,7 @@ public class LabelService {
 
     public void uploadLabel(UploadLabalRequestDto uploadLabelRequestDto, Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException(ErrorCode.USER_NOT_FOUND.getMessage()));
+                .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
 
         HttpHeaders headers = new HttpHeaders();
         String url = gitHubService.createGitHubApiUrl(GITHUB_LABEL_API, uploadLabelRequestDto.repoUrl(), null, headers, user.getGithubToken());
@@ -37,7 +41,7 @@ public class LabelService {
                 createLabel(url, headers, label);
             }
         } catch (Exception e) {
-            throw new RuntimeException(ErrorCode.GITHUB_LABEL_CREATE_ERROR.getMessage(), e);
+            throw new InternalServerException(GITHUB_LABEL_CREATE_ERROR);
         }
     }
 
@@ -54,7 +58,7 @@ public class LabelService {
                 gitHubService.sendRequest(deleteUrl, HttpMethod.DELETE, headers, null);
             }
         } catch (Exception e) {
-            throw new RuntimeException(ErrorCode.GITHUB_LABEL_DELETE_ERROR.getMessage(), e);
+            throw new InternalServerException(GITHUB_LABEL_DELETE_ERROR);
         }
     }
 
@@ -67,7 +71,7 @@ public class LabelService {
         try {
             gitHubService.sendRequest(url, HttpMethod.POST, headers, jsonBody.toString());
         } catch (Exception e) {
-            throw new RuntimeException(ErrorCode.GITHUB_LABEL_CREATE_ERROR.getMessage(), e);
+            throw new InternalServerException(GITHUB_LABEL_CREATE_ERROR);
         }
     }
 
