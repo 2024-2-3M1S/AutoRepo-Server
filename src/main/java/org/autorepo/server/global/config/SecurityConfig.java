@@ -21,7 +21,13 @@ public class SecurityConfig {
     private final OAuth2FailureHandler oAuth2FailureHandler;
     private final CustomOAuth2UserService customOAuth2UserService;
 
-    private static final String[] WHITE_LIST = {"/api/user/**", "/api/token/refresh"};
+    private static final String[] WHITE_LIST = {
+            "/api/user/**",
+            "/api/token/refresh",
+            "/login/oauth2/**",
+            "/oauth2/**",
+            "/favicon.ico"
+    };
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
