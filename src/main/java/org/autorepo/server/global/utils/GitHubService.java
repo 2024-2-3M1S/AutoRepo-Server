@@ -1,4 +1,4 @@
-package org.autorepo.server.domain.repo.service;
+package org.autorepo.server.global.utils;
 
 import lombok.RequiredArgsConstructor;
 import org.autorepo.server.global.error.ErrorCode;
