@@ -1,30 +1,34 @@
 package org.autorepo.server.domain.template.service;
 
+
 import lombok.RequiredArgsConstructor;
 import org.autorepo.server.domain.readme.entity.Readme;
 import org.autorepo.server.domain.readme.repository.ReadmeRepository;
 import org.autorepo.server.domain.repo.entity.Repo;
 import org.autorepo.server.domain.repo.repository.RepoRepository;
-import org.autorepo.server.global.utils.GitHubService;
 import org.autorepo.server.domain.template.dto.request.ShareTemplateRequestDto;
 import org.autorepo.server.domain.template.dto.request.UploadTemplateRequestDto;
-import org.autorepo.server.domain.template.dto.response.DashboardTemplateResponseDto;
-import org.autorepo.server.domain.template.dto.response.RandomTemplateResponseDto;
-import org.autorepo.server.domain.template.dto.response.RecentTemplateResponseDto;
-import org.autorepo.server.domain.template.dto.response.TemplateListResponseDto;
+import org.autorepo.server.domain.template.dto.response.*;
 import org.autorepo.server.domain.template.entity.Template;
 import org.autorepo.server.domain.template.entity.TemplateType;
 import org.autorepo.server.domain.template.repository.TemplateRepository;
 import org.autorepo.server.domain.user.entity.User;
 import org.autorepo.server.domain.user.repository.UserRepository;
-import org.autorepo.server.global.error.ErrorCode;
+import org.autorepo.server.global.error.exception.EntityNotFoundException;
+import org.autorepo.server.global.error.exception.InternalServerException;
+import org.autorepo.server.global.utils.GitHubService;
 import org.json.JSONObject;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
+
+import static org.autorepo.server.global.error.ErrorCode.*;
 
 @RequiredArgsConstructor
 @Service
@@ -41,7 +45,7 @@ public class TemplateService {
     // 템플릿 업로드
     public void uploadTemplate(UploadTemplateRequestDto uploadTemplateRequestDto, Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException(ErrorCode.USER_NOT_FOUND.getMessage()));
+                .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
 
         // PR/ISSUE 템플릿 구분
         boolean isPR = uploadTemplateRequestDto.type() == TemplateType.PR;
@@ -64,7 +68,7 @@ public class TemplateService {
             }
             gitHubService.sendRequest(url, HttpMethod.PUT, headers, jsonBody.toString());
         } catch (Exception e) {
-            throw new RuntimeException(ErrorCode.GITHUB_TEMPLATE_UPLOAD_ERROR.getMessage(), e);
+            throw new InternalServerException(GITHUB_TEMPLATE_UPLOAD_ERROR);
         }
     }
 
@@ -72,7 +76,7 @@ public class TemplateService {
     public void saveTemplate(ShareTemplateRequestDto shareTemplateRequestDto, String imageUrl) {
 
         Repo repo = repoRepository.findByRepoUrl(shareTemplateRequestDto.repoUrl())
-                .orElseThrow(() -> new IllegalArgumentException(ErrorCode.REPO_NOT_FOUND.getMessage()));
+                .orElseThrow(() -> new EntityNotFoundException(REPO_NOT_FOUND));
 
         Template existingTemplate = templateRepository.findByRepoAndType(repo, shareTemplateRequestDto.type())
                 .orElse(null);
@@ -104,7 +108,7 @@ public class TemplateService {
     // 대시보드 템플릿 조회
     public DashboardTemplateResponseDto getDashBoardTemplates(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException(ErrorCode.USER_NOT_FOUND.getMessage()));
+                .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
 
         // 전체 템플릿 리드미
         List<Template> allTemplates = templateRepository.findAll();
@@ -165,4 +169,17 @@ public class TemplateService {
         return result;
     }
 
+    public TemplateInfoResponseDto getTemplateInfo(Long templateId, String type) {
+        if (type.equals("README")) {
+            Readme readme = readmeRepository.findById(templateId)
+                    .orElseThrow(() -> new EntityNotFoundException(README_NOT_FOUND));
+            return new TemplateInfoResponseDto(readme.getReadmeId(), "README", readme.getTitle(), readme.getContent());
+        } else {
+            Template template = templateRepository.findById(templateId)
+                    .orElseThrow(() -> new EntityNotFoundException(TEMPLATE_NOT_FOUND));
+            return new TemplateInfoResponseDto(template.getTemplateId(), template.getType().name(), template.getTitle(), template.getContent());
+        }
+
+
+    }
 }

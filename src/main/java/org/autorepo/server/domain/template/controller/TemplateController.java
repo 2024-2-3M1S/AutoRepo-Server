@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.autorepo.server.domain.template.dto.request.ShareTemplateRequestDto;
 import org.autorepo.server.domain.template.dto.request.UploadTemplateRequestDto;
 import org.autorepo.server.domain.template.dto.response.DashboardTemplateResponseDto;
+import org.autorepo.server.domain.template.dto.response.TemplateInfoResponseDto;
 import org.autorepo.server.domain.template.dto.response.TemplateListResponseDto;
 import org.autorepo.server.domain.template.entity.TemplateType;
 import org.autorepo.server.domain.template.service.TemplateService;
@@ -49,5 +50,12 @@ public class TemplateController {
         DashboardTemplateResponseDto dashboardTemplateResponseDto = templateService.getDashBoardTemplates(userId);
         return SuccessResponse.ok(dashboardTemplateResponseDto);
     }
+
+    @GetMapping("/{type}/{templateId}")
+    public ResponseEntity<SuccessResponse<?>> getTemplateInfo(@PathVariable Long templateId, @PathVariable String type) {
+        TemplateInfoResponseDto templateInfoResponseDto = templateService.getTemplateInfo(templateId,type);
+        return SuccessResponse.ok(templateInfoResponseDto);
+    }
+
 
 }
