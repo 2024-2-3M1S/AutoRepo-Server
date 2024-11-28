@@ -5,7 +5,7 @@ import org.autorepo.server.domain.readme.entity.Readme;
 import org.autorepo.server.domain.readme.repository.ReadmeRepository;
 import org.autorepo.server.domain.repo.entity.Repo;
 import org.autorepo.server.domain.repo.repository.RepoRepository;
-import org.autorepo.server.domain.repo.service.GitHubService;
+import org.autorepo.server.global.utils.GitHubService;
 import org.autorepo.server.domain.template.dto.request.ShareTemplateRequestDto;
 import org.autorepo.server.domain.template.dto.request.UploadTemplateRequestDto;
 import org.autorepo.server.domain.template.dto.response.DashboardTemplateResponseDto;
@@ -69,16 +69,15 @@ public class TemplateService {
     }
 
     // 템플릿 저장
-    public void saveTemplate(ShareTemplateRequestDto shareTemplateRequestDto) {
+    public void saveTemplate(ShareTemplateRequestDto shareTemplateRequestDto, String imageUrl) {
 
         Repo repo = repoRepository.findByRepoUrl(shareTemplateRequestDto.repoUrl())
                 .orElseThrow(() -> new IllegalArgumentException(ErrorCode.REPO_NOT_FOUND.getMessage()));
 
         Template existingTemplate = templateRepository.findByRepoAndType(repo, shareTemplateRequestDto.type())
                 .orElse(null);
-
         if (existingTemplate != null) {
-            existingTemplate.updateContent(shareTemplateRequestDto.title(), shareTemplateRequestDto.content());
+            existingTemplate.updateContent(shareTemplateRequestDto.title(), shareTemplateRequestDto.content(), imageUrl);
             templateRepository.save(existingTemplate);
         } else {
             // 새로운 템플릿 생성
@@ -87,6 +86,7 @@ public class TemplateService {
                     .title(shareTemplateRequestDto.title())
                     .content(shareTemplateRequestDto.content())
                     .type(shareTemplateRequestDto.type())
+                    .imageUrl(imageUrl)
                     .build();
 
             templateRepository.save(newTemplate);

@@ -8,6 +8,7 @@ import org.autorepo.server.domain.template.dto.response.TemplateListResponseDto;
 import org.autorepo.server.domain.template.entity.TemplateType;
 import org.autorepo.server.domain.template.service.TemplateService;
 import org.autorepo.server.global.common.SuccessResponse;
+import org.autorepo.server.global.utils.MarkdownToImageConverter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,7 @@ import java.util.List;
 public class TemplateController {
 
     private final TemplateService templateService;
+    private final MarkdownToImageConverter markdownToImageConverter;
 
     @PostMapping("/upload")
     public ResponseEntity<SuccessResponse<?>> uploadTemplate(@RequestBody UploadTemplateRequestDto uploadTemplateRequestDto, @AuthenticationPrincipal Long userId) {
@@ -27,12 +29,14 @@ public class TemplateController {
         return SuccessResponse.created(null);
     }
 
+
     @PostMapping("/share")
     public ResponseEntity<SuccessResponse<?>> shareTemplate(@RequestBody ShareTemplateRequestDto shareTemplateRequestDto) {
-        templateService.saveTemplate(shareTemplateRequestDto);
+        // 마크다운 이미지 업로드
+        String imageUrl = markdownToImageConverter.convertMarkdownToImage(shareTemplateRequestDto.content(), shareTemplateRequestDto.title());
+        templateService.saveTemplate(shareTemplateRequestDto, imageUrl);
         return SuccessResponse.created(null);
     }
-
 
     @GetMapping("/{type}")
     public ResponseEntity<SuccessResponse<?>> getAllTemplate(@PathVariable TemplateType type) {

@@ -3,15 +3,11 @@ package org.autorepo.server.domain.label.service;
 import lombok.RequiredArgsConstructor;
 import org.autorepo.server.domain.label.dto.request.LabelListRequestDto;
 import org.autorepo.server.domain.label.dto.request.UploadLabalRequestDto;
-import org.autorepo.server.domain.label.entity.Label;
-import org.autorepo.server.domain.label.entity.LabelGenerateType;
-import org.autorepo.server.domain.label.repository.LabelRepository;
-import org.autorepo.server.domain.repo.entity.Repo;
-import org.autorepo.server.domain.repo.repository.RepoRepository;
-import org.autorepo.server.domain.repo.service.GitHubService;
+
 import org.autorepo.server.domain.user.entity.User;
 import org.autorepo.server.domain.user.repository.UserRepository;
 import org.autorepo.server.global.error.ErrorCode;
+import org.autorepo.server.global.utils.GitHubService;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.http.HttpHeaders;
