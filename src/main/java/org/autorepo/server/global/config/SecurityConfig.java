@@ -27,7 +27,6 @@ public class SecurityConfig {
             "/api/token/refresh",
             "/login/oauth2/**",
             "/oauth2/**",
-            "/oauth2/**",
             "/favicon.ico"
     };
 
