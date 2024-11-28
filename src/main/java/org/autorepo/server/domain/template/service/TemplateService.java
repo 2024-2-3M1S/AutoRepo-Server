@@ -123,7 +123,7 @@ public class TemplateService {
         List<RandomTemplateResponseDto> randomTemplates = combineTemplatesAndReadmes(allTemplates, allReadmes).stream()
                 .sorted((o1, o2) -> new Random().nextInt(3) - 1)
                 .map(template -> new RandomTemplateResponseDto(
-                        template.templateId(),
+                        template.id(),
                         template.type(),
                         template.title(),
                         template.imageUrl()
@@ -135,7 +135,7 @@ public class TemplateService {
         List<RecentTemplateResponseDto> recentTemplates = combineTemplatesAndReadmes(myTemplates, myReadmes).stream()
                 .sorted(Comparator.comparing(RecentTemplateResponseDto::modifiedAt).reversed())
                 .map(template -> new RecentTemplateResponseDto(
-                        template.templateId(),
+                        template.id(),
                         template.type(),
                         template.title(),
                         template.imageUrl(),
@@ -169,13 +169,13 @@ public class TemplateService {
         return result;
     }
 
-    public TemplateInfoResponseDto getTemplateInfo(Long templateId, String type) {
+    public TemplateInfoResponseDto getTemplateInfo(Long id, String type) {
         if (type.equals("README")) {
-            Readme readme = readmeRepository.findById(templateId)
+            Readme readme = readmeRepository.findById(id)
                     .orElseThrow(() -> new EntityNotFoundException(README_NOT_FOUND));
             return new TemplateInfoResponseDto(readme.getReadmeId(), "README", readme.getTitle(), readme.getContent());
         } else {
-            Template template = templateRepository.findById(templateId)
+            Template template = templateRepository.findById(id)
                     .orElseThrow(() -> new EntityNotFoundException(TEMPLATE_NOT_FOUND));
             return new TemplateInfoResponseDto(template.getTemplateId(), template.getType().name(), template.getTitle(), template.getContent());
         }

@@ -51,9 +51,9 @@ public class TemplateController {
         return SuccessResponse.ok(dashboardTemplateResponseDto);
     }
 
-    @GetMapping("/{type}/{templateId}")
-    public ResponseEntity<SuccessResponse<?>> getTemplateInfo(@PathVariable Long templateId, @PathVariable String type) {
-        TemplateInfoResponseDto templateInfoResponseDto = templateService.getTemplateInfo(templateId,type);
+    @GetMapping("/{type}/{id}")
+    public ResponseEntity<SuccessResponse<?>> getTemplateInfo(@PathVariable Long id, @PathVariable String type) {
+        TemplateInfoResponseDto templateInfoResponseDto = templateService.getTemplateInfo(id,type);
         return SuccessResponse.ok(templateInfoResponseDto);
     }
 
