@@ -22,6 +22,7 @@ public class Readme extends BaseTimeEntity {
     private String stack;
     @Column(columnDefinition = "TEXT")
     private String content;
+    private String imageUrl;
     @ManyToOne
     @JoinColumn(name = "repo_id")
     private Repo repo;
