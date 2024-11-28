@@ -55,15 +55,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	//WenClient
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    //CommonMark
-    implementation 'org.commonmark:commonmark:0.18.1'
-    // JavaFX
-    implementation "org.openjfx:javafx-controls:17.0.2"
-    implementation "org.openjfx:javafx-graphics:17.0.2:mac"
-    implementation "org.openjfx:javafx-swing:17.0.2"
     //aws
     implementation 'com.amazonaws:aws-java-sdk-s3:1.12.541'
-
+    // Flying Saucer
+    implementation 'org.xhtmlrenderer:flying-saucer-core:9.1.22'
+    implementation 'org.xhtmlrenderer:flying-saucer-pdf:9.1.22'
+    // Flexmark
+    implementation 'com.vladsch.flexmark:flexmark-all:0.64.0'
 
 
 
