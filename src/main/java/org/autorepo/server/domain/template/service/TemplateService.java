@@ -118,23 +118,24 @@ public class TemplateService {
         // 랜덤 템플릿
         List<RandomTemplateResponseDto> randomTemplates = combineTemplatesAndReadmes(allTemplates, allReadmes).stream()
                 .sorted((o1, o2) -> new Random().nextInt(3) - 1)
-                .limit(5)
                 .map(template -> new RandomTemplateResponseDto(
+                        template.templateId(),
                         template.type(),
                         template.title(),
-                        template.content()
+                        template.imageUrl()
+
                 ))
                 .toList();
 
         // 최근 템플릿
         List<RecentTemplateResponseDto> recentTemplates = combineTemplatesAndReadmes(myTemplates, myReadmes).stream()
                 .sorted(Comparator.comparing(RecentTemplateResponseDto::modifiedAt).reversed())
-                .limit(5)
                 .map(template -> new RecentTemplateResponseDto(
-                        template.modifiedAt(),
+                        template.templateId(),
                         template.type(),
                         template.title(),
-                        template.content()
+                        template.imageUrl(),
+                        template.modifiedAt()
                 ))
                 .toList();
 
@@ -146,17 +147,19 @@ public class TemplateService {
         List<RecentTemplateResponseDto> result = new ArrayList<>();
 
         templates.forEach(template -> result.add(new RecentTemplateResponseDto(
-                template.getModifiedAt(),
+                template.getTemplateId(),
                 template.getType().name(),
                 template.getTitle(),
-                template.getContent()
+                template.getImageUrl(),
+                template.getModifiedAt()
         )));
 
         readmes.forEach(readme -> result.add(new RecentTemplateResponseDto(
-                readme.getModifiedAt(),
+                readme.getReadmeId(),
                 "README",
                 readme.getTitle(),
-                readme.getContent()
+                readme.getImageUrl(),
+                readme.getModifiedAt()
         )));
 
         return result;
