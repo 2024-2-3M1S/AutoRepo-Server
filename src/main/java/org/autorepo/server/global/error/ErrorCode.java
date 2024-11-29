@@ -31,6 +31,8 @@ public enum ErrorCode {
     REPO_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 레포지토리를 찾을 수 없습니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당하는 유저를 찾을 수 없습니다."),
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "리프레쉬 토큰을 찾을 수 없습니다."),
+    TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 템플릿을 찾을 수 없습니다."),
+    README_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 README를 찾을 수 없습니다."),
 
     /**
      * 405 Method Not Allowed
@@ -52,6 +54,7 @@ public enum ErrorCode {
      * 500 Internal Server Error
      */
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류입니다."),
+    REPO_PARSE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레포지토리 파싱 중 오류가 발생했습니다."),
     GITHUB_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "GitHub API 호출 중 오류가 발생했습니다."),
     GITHUB_LABEL_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "깃허브 기존 라벨 삭제 중 오류가 발생했습니다."),
     GITHUB_LABEL_CREATE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "깃허브 라벨 생성 중 오류가 발생했습니다."),

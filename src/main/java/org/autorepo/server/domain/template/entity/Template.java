@@ -17,6 +17,7 @@ public class Template extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long templateId;
     private String title;
+    private String imageUrl;
     @Enumerated(EnumType.STRING)
     private TemplateType type;
     @Column(columnDefinition = "TEXT")
@@ -25,8 +26,10 @@ public class Template extends BaseTimeEntity {
     @JoinColumn(name = "repo_id")
     private Repo repo;
 
-    public void updateContent(String title, String content) {
+
+    public void updateContent(String title, String content, String imageUrl) {
         this.title = title;
         this.content = content;
+        this.imageUrl = imageUrl;
     }
 }
