@@ -1,9 +1,11 @@
 package org.autorepo.server.domain.repo.service;
 
 import lombok.RequiredArgsConstructor;
+import org.autorepo.server.domain.repo.dto.response.RepoResponse;
 import org.autorepo.server.domain.repo.entity.Repo;
 import org.autorepo.server.domain.repo.repository.RepoRepository;
 import org.autorepo.server.domain.user.entity.User;
+import org.autorepo.server.domain.user.entity.UserRole;
 import org.autorepo.server.domain.user.repository.UserRepository;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -14,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -26,55 +27,79 @@ public class RepoService {
     private final RepoRepository repoRepository;
     private final UserRepository userRepository;
 
-    public void saveSingleRepo(Repo repo, User user) {
-        if (!userRepository.existsById(user.getUserId())) {
-            userRepository.save(user);
+    public List<RepoResponse> fetchUserRepos(String githubToken) {
+        String token = githubToken.replace("Bearer ", "");
+        String githubId = fetchGithubIdFromToken(token);
+
+        // User 초기화
+        User user = userRepository.findByGithubId(githubId)
+                .orElseGet(() -> {
+                    User newUser = new User();
+                    newUser.setGithubId(githubId);
+                    newUser.setGithubToken(token);
+                    newUser.setUserRole(UserRole.valueOf("USER"));
+                    return userRepository.save(newUser);
+                });
+
+        List<Repo> repos = fetchAndSaveRepos(user, token);
+
+        return repos.stream()
+                .map(repo -> new RepoResponse(repo.getRepoName(), repo.getRepoUrl(), repo.getUser().getUserId()))
+                .toList();
+    }
+
+    // Token에서 id 추출
+    public String fetchGithubIdFromToken(String token) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "https://api.github.com/user";
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                url, HttpMethod.GET, entity, new ParameterizedTypeReference<>() {});
+
+        Map<String, Object> responseBody = response.getBody();
+        if (responseBody == null || !responseBody.containsKey("login")) {
+            throw new IllegalArgumentException("Invalid GitHub token");
         }
-        repo.setUser(user);
-        repoRepository.save(repo);
+
+        return (String) responseBody.get("login");
     }
 
     @Transactional
     public List<Repo> fetchAndSaveRepos(User user, String githubToken) {
-        // User가 영속화되지 않았으면 저장 후 영속화된 객체로 업데이트
-        if (user.getUserId() == null || !userRepository.existsById(user.getUserId())) {
-            user = userRepository.save(user);
-        }
-
         // GitHub API 호출
         RestTemplate restTemplate = new RestTemplate();
         String url = "https://api.github.com/user/repos";
 
-        var headers = new HttpHeaders();
+        HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "token " + githubToken);
         headers.set("Accept", "application/vnd.github.v3+json");
 
         HttpEntity<Void> entity = new HttpEntity<>(headers);
-
         ResponseEntity<List<Map<String, Object>>> response =
                 restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<>() {});
 
         List<Map<String, Object>> repos = response.getBody();
-        List<Repo> savedRepos = new ArrayList<>();
 
-        // 각 레포지토리를 Repo 엔티티로 변환 후 저장
         if (repos != null) {
             for (Map<String, Object> repoData : repos) {
                 String repoName = (String) repoData.get("name");
                 String repoUrl = (String) repoData.get("html_url");
 
-                // 중복 확인
-                if (!repoRepository.findByRepoUrl(repoUrl).isPresent()) {
+                // 레포지토리가 이미 저장되어 있는지 확인
+                if (repoRepository.findByRepoUrl(repoUrl).isEmpty()) {
                     Repo repo = new Repo();
                     repo.setRepoName(repoName);
                     repo.setRepoUrl(repoUrl);
-                    repo.setUser(user); // User 설정
-
-                    savedRepos.add(repoRepository.save(repo)); // Repo 저장
+                    repo.setUser(user); // 기존 유저와 매핑
+                    repoRepository.save(repo);
                 }
             }
         }
 
-        return savedRepos;
+        // 해당 유저의 모든 레포지토리를 반환
+        return repoRepository.findAllByUser(user);
     }
 }
+

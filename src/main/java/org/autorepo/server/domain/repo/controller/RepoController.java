@@ -23,12 +23,7 @@ public class RepoController {
     private final RepoService repoService;
 
     @GetMapping("/fetch")
-    public List<RepoResponse> fetchUserRepos(@RequestHeader("Authorization") String githubToken, User user) {
-        String token = githubToken.replace("Bearer ", "");
-        List<Repo> repos = repoService.fetchAndSaveRepos(user, token);
-
-        return repos.stream()
-                .map(repo -> new RepoResponse(repo.getRepoName(), repo.getRepoUrl(), repo.getUser().getUserId()))
-                .toList();
+    public List<RepoResponse> fetchUserRepos(@RequestHeader("Authorization") String githubToken) {
+        return repoService.fetchUserRepos(githubToken);
     }
 }
