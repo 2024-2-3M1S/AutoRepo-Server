@@ -69,9 +69,9 @@ import java.util.*;
         private String createPrompt(ReadmeRequest readMeRequest) {
             StringBuilder prompt = new StringBuilder();
 
-            // 프로젝트 이름과 간단한 설명
+            // 프로젝트 이름과 설명
             prompt.append("# ").append(readMeRequest.getTitle()).append("\n");
-            prompt.append("간단한 설명: ").append(readMeRequest.getDescription()).append("\n\n");
+            prompt.append("프로젝트 설명: ").append(readMeRequest.getDescription()).append("\n\n");
 
             // 소개
             prompt.append("## 🚀 소개\n");

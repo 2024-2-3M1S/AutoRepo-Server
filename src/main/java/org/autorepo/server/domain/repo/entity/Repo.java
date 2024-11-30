@@ -9,6 +9,7 @@ import org.autorepo.server.domain.user.entity.User;
 
 import java.util.List;
 
+@Getter
 @Setter
 @NoArgsConstructor
 @Table(name = "repo")
