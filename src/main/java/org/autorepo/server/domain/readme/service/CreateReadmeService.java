@@ -15,43 +15,44 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 
-    @RequiredArgsConstructor
-    @Service
-    @Transactional
-    public class ReadmeService {
-        private final RestTemplate restTemplate;
-        private final HttpHeaders headers;
-        private final GptConfig gptConfig;
+@RequiredArgsConstructor
+@Service
+@Transactional
+public class CreateReadmeService {
 
-        public String getModel() {
+    private final RestTemplate restTemplate;
+    private final HttpHeaders headers;
+    private final GptConfig gptConfig;
+
+    public String getModel() {
             return gptConfig.getModel();
         }
 
-        private String createRequestBody(String prompt) throws JsonProcessingException {
-            ObjectMapper objectMapper = new ObjectMapper();
-            Map<String, Object> requestBodyMap = new HashMap<>();
-            requestBodyMap.put("model", gptConfig.getModel());
-            List<Map<String, String>> messages = new ArrayList<>();
-            messages.add(Map.of("role", "system", "content", "You are a Markdown assistant. Respond with clean, raw Markdown text only, without any extra JSON or formatting."));
-            messages.add(Map.of("role", "user", "content", prompt));
-            requestBodyMap.put("messages", messages);
-            return objectMapper.writeValueAsString(requestBodyMap);
-        }
+    private String createRequestBody(String prompt) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, Object> requestBodyMap = new HashMap<>();
+        requestBodyMap.put("model", gptConfig.getModel());
+        List<Map<String, String>> messages = new ArrayList<>();
+        messages.add(Map.of("role", "system", "content", "You are a Markdown assistant. Respond with clean, raw Markdown text only, without any extra JSON or formatting."));
+        messages.add(Map.of("role", "user", "content", prompt));
+        requestBodyMap.put("messages", messages);
+        return objectMapper.writeValueAsString(requestBodyMap);
+    }
 
-        public String generateMarkdown(ReadmeRequest readMeRequest) throws JsonProcessingException {
-            String prompt = createPrompt(readMeRequest);
-            String requestBody = createRequestBody(prompt); // JSON 생성
+    public String generateMarkdown(ReadmeRequest readMeRequest) throws JsonProcessingException {
+        String prompt = createPrompt(readMeRequest);
+        String requestBody = createRequestBody(prompt); // JSON 생성
 
-            HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+        HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
 
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                    "https://api.openai.com/v1/chat/completions", entity, String.class
-            );
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                "https://api.openai.com/v1/chat/completions", entity, String.class
+        );
 
-            // OpenAI 응답에서 Markdown 텍스트만 추출
-            String responseBody = response.getBody();
-            return extractMarkdownFromResponse(responseBody);
-        }
+        // OpenAI 응답에서 Markdown 텍스트만 추출
+        String responseBody = response.getBody();
+        return extractMarkdownFromResponse(responseBody);
+    }
 
         private String extractMarkdownFromResponse(String responseBody) {
             try {
@@ -173,5 +174,5 @@ import java.util.*;
 
             return guide.toString();
         }
-    }
+}
 
