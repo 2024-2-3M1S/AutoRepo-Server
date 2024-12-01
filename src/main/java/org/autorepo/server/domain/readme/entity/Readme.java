@@ -6,6 +6,7 @@ import org.autorepo.server.domain.repo.entity.Repo;
 import org.autorepo.server.global.common.BaseTimeEntity;
 
 @Getter
+@Setter
 @NoArgsConstructor
 @Table(name = "readme")
 @Entity

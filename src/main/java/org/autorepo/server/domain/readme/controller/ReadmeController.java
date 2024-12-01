@@ -1,13 +1,16 @@
 package org.autorepo.server.domain.readme.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sun.net.httpserver.Authenticator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.autorepo.server.domain.readme.dto.request.ReadmeRequest;
 import org.autorepo.server.domain.readme.dto.request.UploadReadmeRequest;
 import org.autorepo.server.domain.readme.dto.response.ReadmeResponse;
+import org.autorepo.server.domain.readme.entity.Readme;
 import org.autorepo.server.domain.readme.service.CreateReadmeService;
 import org.autorepo.server.domain.readme.service.UploadReadmeService;
+import org.autorepo.server.domain.template.dto.request.ShareTemplateRequestDto;
 import org.autorepo.server.domain.user.repository.UserRepository;
 import org.autorepo.server.global.common.SuccessResponse;
 import org.autorepo.server.global.error.ErrorCode;
@@ -30,12 +33,11 @@ public class ReadmeController {
     private final UploadReadmeService uploadReadmeService;
 
     @PostMapping("/generate")
-    public ResponseEntity<ReadmeResponse> generateMarkdown(@RequestBody ReadmeRequest readmeRequest) {
-        log.info("Received request: {}", readmeRequest);
+    public ResponseEntity<ReadmeResponse> generateAndSaveReadme(@RequestBody ReadmeRequest readmeRequest) {
+        log.info("Received request to generate and save README: {}", readmeRequest);
         try {
-            String markdown = createReadmeService.generateMarkdown(readmeRequest);
-            ReadmeResponse response = new ReadmeResponse(markdown);
-            log.info("Generated markdown: {}", markdown);
+            ReadmeResponse response = createReadmeService.generateAndSaveReadme(readmeRequest);
+            log.info("Generated and saved README: {}", response);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error while generating markdown", e);
@@ -46,12 +48,8 @@ public class ReadmeController {
     @PutMapping("/upload")
     public ResponseEntity<SuccessResponse<?>> uploadReadme(
             @RequestBody UploadReadmeRequest uploadReadmeRequest,
-            @AuthenticationPrincipal String githubLogin) {
-        if (githubLogin == null) {
-            throw new IllegalArgumentException("User login is null.");
-        }
-        uploadReadmeService.uploadReadme(uploadReadmeRequest, githubLogin);
+            @AuthenticationPrincipal String userGithubId) {
+        uploadReadmeService.uploadReadme(uploadReadmeRequest, userGithubId);
         return SuccessResponse.created(null);
     }
-
 }
