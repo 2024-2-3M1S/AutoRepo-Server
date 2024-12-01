@@ -12,6 +12,7 @@ public enum ErrorCode {
      * 400 Bad Request
      */
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
+    USER_ID_MISSING(HttpStatus.BAD_REQUEST, "토큰에서 사용자 ID를 찾을 수 없습니다."),
 
     /**
      * 401 Unauthorized

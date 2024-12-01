@@ -5,7 +5,6 @@ import org.autorepo.server.domain.repo.dto.response.RepoResponse;
 import org.autorepo.server.domain.repo.entity.Repo;
 import org.autorepo.server.domain.repo.repository.RepoRepository;
 import org.autorepo.server.domain.user.entity.User;
-import org.autorepo.server.domain.user.entity.UserRole;
 import org.autorepo.server.domain.user.repository.UserRepository;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -27,43 +26,15 @@ public class RepoService {
     private final RepoRepository repoRepository;
     private final UserRepository userRepository;
 
-    public List<RepoResponse> fetchUserRepos(String githubToken) {
-        String token = githubToken.replace("Bearer ", "");
-        String githubId = fetchGithubIdFromToken(token);
+    public List<RepoResponse> fetchUserReposByUserId(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found for ID: " + userId));
 
-        // User 초기화
-        User user = userRepository.findByGithubId(githubId)
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setGithubId(githubId);
-                    newUser.setGithubToken(token);
-                    newUser.setUserRole(UserRole.valueOf("USER"));
-                    return userRepository.save(newUser);
-                });
-
-        List<Repo> repos = fetchAndSaveRepos(user, token);
+        List<Repo> repos = fetchAndSaveRepos(user, user.getGithubToken());
 
         return repos.stream()
-                .map(repo -> new RepoResponse(repo.getRepoName(), repo.getRepoUrl(), repo.getUser().getUserId()))
+                .map(repo -> new RepoResponse(repo.getRepoName(), repo.getRepoUrl(), user.getUserId()))
                 .toList();
-    }
-
-    // Token에서 id 추출
-    public String fetchGithubIdFromToken(String token) {
-        RestTemplate restTemplate = new RestTemplate();
-        String url = "https://api.github.com/user";
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + token);
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                url, HttpMethod.GET, entity, new ParameterizedTypeReference<>() {});
-
-        Map<String, Object> responseBody = response.getBody();
-        if (responseBody == null || !responseBody.containsKey("login")) {
-            throw new IllegalArgumentException("Invalid GitHub token");
-        }
-
-        return (String) responseBody.get("login");
     }
 
     @Transactional
@@ -102,4 +73,3 @@ public class RepoService {
         return repoRepository.findAllByUser(user);
     }
 }
-
