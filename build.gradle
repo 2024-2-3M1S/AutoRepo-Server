@@ -62,7 +62,8 @@ dependencies {
     implementation 'org.xhtmlrenderer:flying-saucer-pdf:9.1.22'
     // Flexmark
     implementation 'com.vladsch.flexmark:flexmark-all:0.64.0'
-
+	// Junit
+	testImplementation 'org.junit.jupiter:junit-jupiter:5.9.3'
 
 
 

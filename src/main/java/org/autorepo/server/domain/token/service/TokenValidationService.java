@@ -20,9 +20,26 @@ public class TokenValidationService {
         List<User> users = userRepository.findAll();
 
         for (User user : users) {
-            if (!tokenValidator.isTokenValid(user.getGithubToken())) {
-                System.out.println("Token expired for user: " + user.getGithubId());
+            String token = user.getGithubToken();
+
+            if (isPersonalAccessToken(token)) {
+                if (!tokenValidator.validatePersonalAccessToken(token)) {
+                    System.out.println("Personal Access Token expired for user: " + user.getGithubId());
+                }
+            } else {
+                if (!tokenValidator.validateLoginAccessToken(token)) {
+                    System.out.println("Login Access Token expired for user: " + user.getGithubId());
+                }
             }
         }
+    }
+
+    /**
+     * 토큰이 Personal Access Token인지 확인
+     * @param token 검증할 토큰
+     * @return PAT이면 true, 아니면 false
+     */
+    private boolean isPersonalAccessToken(String token) {
+        return token.startsWith("gho_") || token.startsWith("ghp_");
     }
 }

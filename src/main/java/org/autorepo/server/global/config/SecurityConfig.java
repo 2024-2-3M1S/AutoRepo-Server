@@ -27,7 +27,10 @@ public class SecurityConfig {
             "/api/token/refresh",
             "/login/oauth2/**",
             "/oauth2/**",
-            "/favicon.ico"
+            "/favicon.ico",
+            "/swagger-ui.html",
+            "/swagger-resources/**",
+            "/swagger-ui/**",
     };
 
     @Bean

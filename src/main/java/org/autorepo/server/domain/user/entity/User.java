@@ -23,7 +23,7 @@ public class User extends BaseTimeEntity {
     private String githubToken;
     @Enumerated(EnumType.STRING)
     private UserRole userRole;
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
     private List<Repo> repos;
 
 
