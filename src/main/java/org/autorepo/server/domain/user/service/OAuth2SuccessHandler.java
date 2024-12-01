@@ -1,10 +1,8 @@
 package org.autorepo.server.domain.user.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.autorepo.server.domain.token.dto.TokenResponse;
 import org.autorepo.server.domain.token.service.TokenService;
 import org.autorepo.server.domain.user.entity.User;
 import org.autorepo.server.domain.user.repository.UserRepository;
@@ -44,8 +42,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // RefreshToken 저장
         tokenService.saveRefreshToken(user.getUserId(), jwtRefreshToken);
 
+        // 요청의 Origin 헤더로 baseUrl 설정
+        String origin = request.getHeader("Origin");
+        String clientBaseUrl = (origin != null) ? origin : "http://localhost:3000";
+
         // 클라이언트로 리다이렉트
-        String redirectUrl = "http://localhost:3000/oauth2/success?accessToken=" + jwtAccessToken + "&refreshToken=" + jwtRefreshToken;
+        String redirectUrl = clientBaseUrl + "/oauth2/success?accessToken=" + jwtAccessToken + "&refreshToken=" + jwtRefreshToken;
         response.sendRedirect(redirectUrl);
     }
 }
