@@ -28,6 +28,7 @@ public class SecurityConfig {
             "/login/oauth2/**",
             "/oauth2/**",
             "/favicon.ico",
+            "/v3/api-docs",
             "/swagger-ui.html",
             "/swagger-resources/**",
             "/swagger-ui/**",
