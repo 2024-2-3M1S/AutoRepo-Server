@@ -1,29 +1,32 @@
 package org.autorepo.server.domain.repo.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.autorepo.server.domain.repo.dto.response.RepoResponse;
+import org.autorepo.server.global.error.ErrorCode;
+import org.autorepo.server.global.error.exception.BusinessException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import lombok.RequiredArgsConstructor;
-import org.autorepo.server.domain.repo.entity.Repo;
 import org.autorepo.server.domain.repo.service.RepoService;
-import org.autorepo.server.domain.user.entity.User;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/repo")
+@Slf4j
 public class RepoController {
 
     private final RepoService repoService;
 
     @GetMapping("/fetch")
-    public List<RepoResponse> fetchUserRepos(@RequestHeader("Authorization") String githubToken) {
-        return repoService.fetchUserRepos(githubToken);
+    public List<RepoResponse> fetchUserRepos(@AuthenticationPrincipal Long userId) {
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.USER_ID_MISSING);
+        }
+        return repoService.fetchUserReposByUserId(userId);
     }
 }
