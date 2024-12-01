@@ -42,11 +42,20 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // RefreshToken 저장
         tokenService.saveRefreshToken(user.getUserId(), jwtRefreshToken);
 
-        // 요청의 Origin 헤더로 baseUrl 설정
-        String origin = request.getHeader("Origin");
-        String clientBaseUrl = (origin != null) ? origin : "http://localhost:3000";
 
-        // 클라이언트로 리다이렉트
+        String origin = request.getHeader("Origin");
+        if (origin == null) {
+            origin = request.getHeader("Referer");
+        }
+
+        // baseUrl 추출
+        String clientBaseUrl;
+        if (origin != null) {
+            clientBaseUrl = origin.split("/")[0] + "//" + origin.split("/")[2];
+        } else {
+            clientBaseUrl = "http://localhost:3000";
+        }
+
         String redirectUrl = clientBaseUrl + "/oauth2/success?accessToken=" + jwtAccessToken + "&refreshToken=" + jwtRefreshToken;
         response.sendRedirect(redirectUrl);
     }
