@@ -80,23 +80,15 @@ public class TemplateService {
         Repo repo = repoRepository.findByRepoUrl(shareTemplateRequestDto.repoUrl())
                 .orElseThrow(() -> new EntityNotFoundException(REPO_NOT_FOUND));
 
-        Template existingTemplate = templateRepository.findByRepoAndType(repo, shareTemplateRequestDto.type())
-                .orElse(null);
-        if (existingTemplate != null) {
-            existingTemplate.updateContent(shareTemplateRequestDto.title(), shareTemplateRequestDto.content(), imageUrl);
-            templateRepository.save(existingTemplate);
-        } else {
-            // 새로운 템플릿 생성
-            Template newTemplate = Template.builder()
-                    .repo(repo)
-                    .title(shareTemplateRequestDto.title())
-                    .content(shareTemplateRequestDto.content())
-                    .type(shareTemplateRequestDto.type())
-                    .imageUrl(imageUrl)
-                    .build();
+        Template newTemplate = Template.builder()
+                .repo(repo)
+                .title(shareTemplateRequestDto.title())
+                .content(shareTemplateRequestDto.content())
+                .type(shareTemplateRequestDto.type())
+                .imageUrl(imageUrl)
+                .build();
 
-            templateRepository.save(newTemplate);
-        }
+        templateRepository.save(newTemplate);
     }
 
 

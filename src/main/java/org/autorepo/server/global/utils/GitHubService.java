@@ -48,6 +48,7 @@ public class GitHubService {
         try {
             return restTemplate.exchange(url, method, request, String.class);
         } catch (HttpClientErrorException e) {
+            System.out.println("GitHub API request failed: " + e.getMessage());
             throw new InternalServerException(GITHUB_API_ERROR);
         }
     }
@@ -60,6 +61,7 @@ public class GitHubService {
                 return new org.json.JSONObject(response.getBody()).getString("sha");
             }
         } catch (Exception e) {
+            System.out.println("Failed to get SHA from GitHub API: " + e.getMessage());
             throw new InternalServerException(UNPROCESSABLE_ENTITY);
         }
         return null;
