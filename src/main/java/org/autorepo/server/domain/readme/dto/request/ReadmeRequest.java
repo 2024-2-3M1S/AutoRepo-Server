@@ -8,8 +8,7 @@ import java.util.List;
 public class ReadmeRequest {
     private String title;
     private String description;
-    private List<String> stack;
-    private List<String> teamMembers;
+    private List<TechStack> stack;
+    private List<TeamMember> teamMembers;
     private String installation;
-
 }

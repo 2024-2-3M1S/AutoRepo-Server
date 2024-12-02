@@ -24,11 +24,9 @@ public class ReadmeController {
     private final UploadReadmeService uploadReadmeService;
 
     @PostMapping("/generate")
-    public ResponseEntity<ReadmeResponse> generateAndSaveReadme(@RequestBody ReadmeRequest readmeRequest) {
-        log.info("Received request to generate and save README: {}", readmeRequest);
+    public ResponseEntity<ReadmeResponse> generateReadme(@RequestBody ReadmeRequest readmeRequest) {
         try {
-            ReadmeResponse response = createReadmeService.generateAndSaveReadme(readmeRequest);
-            log.info("Generated and saved README: {}", response);
+            ReadmeResponse response = createReadmeService.generateReadme(readmeRequest);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error while generating markdown", e);
