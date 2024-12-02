@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.autorepo.server.domain.repo.entity.Repo;
 import org.autorepo.server.global.common.BaseTimeEntity;
-
 @Getter
 @AllArgsConstructor
 @Builder
@@ -31,5 +30,9 @@ public class Template extends BaseTimeEntity {
         this.title = title;
         this.content = content;
         this.imageUrl = imageUrl;
+    }
+
+    public void setId( Long templateId) {
+        this.templateId = templateId;
     }
 }

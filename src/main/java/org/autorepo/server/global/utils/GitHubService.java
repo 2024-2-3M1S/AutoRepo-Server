@@ -48,7 +48,10 @@ public class GitHubService {
         try {
             return restTemplate.exchange(url, method, request, String.class);
         } catch (HttpClientErrorException e) {
-            System.out.println("GitHub API request failed: " + e.getMessage());
+            System.out.println("GitHub API 요청 실패: " + e.getMessage());
+            System.out.println("응답 코드: " + e.getStatusCode());
+            System.out.println("응답 본문: " + e.getResponseBodyAsString());
+
             throw new InternalServerException(GITHUB_API_ERROR);
         }
     }

@@ -75,21 +75,24 @@ public class TemplateService {
     }
 
         // 템플릿 저장
-    public void saveTemplate(ShareTemplateRequestDto shareTemplateRequestDto, String imageUrl) {
+        public void saveTemplate(ShareTemplateRequestDto shareTemplateRequestDto, String imageUrl) {
+            Repo repo = repoRepository.findByRepoUrl(shareTemplateRequestDto.repoUrl())
+                    .orElseThrow(() -> new EntityNotFoundException(REPO_NOT_FOUND));
 
-        Repo repo = repoRepository.findByRepoUrl(shareTemplateRequestDto.repoUrl())
-                .orElseThrow(() -> new EntityNotFoundException(REPO_NOT_FOUND));
+            Template newTemplate = Template.builder()
+                    .repo(repo)
+                    .title(shareTemplateRequestDto.title())
+                    .content(shareTemplateRequestDto.content())
+                    .type(shareTemplateRequestDto.type())
+                    .imageUrl(imageUrl)
+                    .build();
 
-        Template newTemplate = Template.builder()
-                .repo(repo)
-                .title(shareTemplateRequestDto.title())
-                .content(shareTemplateRequestDto.content())
-                .type(shareTemplateRequestDto.type())
-                .imageUrl(imageUrl)
-                .build();
+            // 엔티티 ID 초기화
+            newTemplate.setId(null);
 
-        templateRepository.save(newTemplate);
-    }
+            templateRepository.save(newTemplate);
+        }
+
 
 
     // 템플릿 조회
