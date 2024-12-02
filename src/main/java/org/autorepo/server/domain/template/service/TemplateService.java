@@ -21,11 +21,9 @@ import org.json.JSONObject;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.autorepo.server.global.error.ErrorCode.*;
@@ -42,7 +40,8 @@ public class TemplateService {
     private final RepoRepository repoRepository;
     private final ReadmeRepository readmeRepository;
 
-    // 템플릿 업로드
+
+// 템플릿 업로드
     public void uploadTemplate(UploadTemplateRequestDto uploadTemplateRequestDto, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
@@ -54,22 +53,25 @@ public class TemplateService {
         String path = isPR ? ".github/pull_request_template.md" : ".github/ISSUE_TEMPLATE/issue_template.md";
 
         HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + user.getGithubToken());
         String url = gitHubService.createGitHubApiUrl(GITHUB_API_URL, uploadTemplateRequestDto.repoUrl(), path, headers, user.getGithubToken());
         String base64Content = java.util.Base64.getEncoder().encodeToString(content.getBytes());
         JSONObject jsonBody = new JSONObject();
         jsonBody.put("message", "Update " + uploadTemplateRequestDto.type() + " Template");
         jsonBody.put("content", base64Content);
 
-        //기존 템플릿 존재 여부 확인
         try {
-            String sha = gitHubService.getFileSha(url, headers);
+            String sha = null;
+            try {
+                sha = gitHubService.getFileSha(url, headers);
+            } catch (HttpClientErrorException.NotFound e) {
+                System.out.println("기존 파일이 존재하지 않습니다. 새로 생성합니다.");
+            }
             if (sha != null) {
                 jsonBody.put("sha", sha);
             }
             gitHubService.sendRequest(url, HttpMethod.PUT, headers, jsonBody.toString());
         } catch (Exception e) {
-            System.out.println("깃허브 템플릿 업로드 중 오류 발생: " + e.getMessage());
-            e.printStackTrace();
             throw new InternalServerException(GITHUB_TEMPLATE_UPLOAD_ERROR);
         }
     }
@@ -86,9 +88,6 @@ public class TemplateService {
                     .type(shareTemplateRequestDto.type())
                     .imageUrl(imageUrl)
                     .build();
-
-            // 엔티티 ID 초기화
-            newTemplate.setId(null);
 
             templateRepository.save(newTemplate);
         }

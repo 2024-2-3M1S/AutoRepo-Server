@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.autorepo.server.global.error.ErrorCode;
 import org.autorepo.server.global.error.exception.InternalServerException;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
@@ -63,12 +60,20 @@ public class GitHubService {
             if (response.getStatusCode().is2xxSuccessful()) {
                 return new org.json.JSONObject(response.getBody()).getString("sha");
             }
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                System.out.println("File not found. ");
+                return null; // 파일이 없는 경우 null 반환
+            }
+            throw new InternalServerException(UNPROCESSABLE_ENTITY);
         } catch (Exception e) {
-            System.out.println("Failed to get SHA from GitHub API: " + e.getMessage());
+            System.out.println("Unexpected error: " + e.getMessage());
             throw new InternalServerException(UNPROCESSABLE_ENTITY);
         }
+
         return null;
     }
+
 
 //    public String getUsernameFromPAT(String token) {
 //        // GitHub API 호출로 사용자 정보를 가져옵니다.
