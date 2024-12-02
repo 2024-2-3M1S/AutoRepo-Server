@@ -1,7 +1,6 @@
 package org.autorepo.server.domain.repo.controller;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.autorepo.server.domain.repo.dto.response.RepoResponse;
 import org.autorepo.server.global.error.ErrorCode;
 import org.autorepo.server.global.error.exception.BusinessException;
@@ -17,7 +16,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/repo")
-@Slf4j
 public class RepoController {
 
     private final RepoService repoService;
