@@ -104,7 +104,7 @@ public class CreateReadmeService {
         // 표 생성
         StringBuilder table = new StringBuilder("| **Category** | **Stack** |\n|:------------:|:----------:|\n");
         categorizedStacks.forEach((category, stacks) -> {
-            table.append("| ").append(category).append(" | ").append(String.join(", ", stacks)).append(" |\n");
+            table.append("| **").append(category).append("** | ").append(String.join(", ", stacks)).append(" |\n");
         });
 
         if (!uncategorized.isEmpty()) {
