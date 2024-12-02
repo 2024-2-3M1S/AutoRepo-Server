@@ -68,11 +68,13 @@ public class TemplateService {
             }
             gitHubService.sendRequest(url, HttpMethod.PUT, headers, jsonBody.toString());
         } catch (Exception e) {
+            System.out.println("깃허브 템플릿 업로드 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
             throw new InternalServerException(GITHUB_TEMPLATE_UPLOAD_ERROR);
         }
     }
 
-    // 템플릿 저장
+        // 템플릿 저장
     public void saveTemplate(ShareTemplateRequestDto shareTemplateRequestDto, String imageUrl) {
 
         Repo repo = repoRepository.findByRepoUrl(shareTemplateRequestDto.repoUrl())
