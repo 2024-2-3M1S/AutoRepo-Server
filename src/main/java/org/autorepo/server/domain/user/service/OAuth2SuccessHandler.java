@@ -43,7 +43,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         tokenService.saveRefreshToken(user.getUserId(), jwtRefreshToken);
 
         // 클라이언트로 리다이렉트
-        String redirectUrl = "http://localhost:3000/oauth2/success?accessToken=" + jwtAccessToken + "&refreshToken=" + jwtRefreshToken;
+        String redirectUrl = "https://autorepo.dcs-seochan99.com/oauth2/success?accessToken=" + jwtAccessToken + "&refreshToken=" + jwtRefreshToken;
         response.sendRedirect(redirectUrl);
     }
 }
