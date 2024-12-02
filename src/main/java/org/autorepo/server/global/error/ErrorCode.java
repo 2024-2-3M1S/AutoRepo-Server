@@ -34,6 +34,7 @@ public enum ErrorCode {
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "리프레쉬 토큰을 찾을 수 없습니다."),
     TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 템플릿을 찾을 수 없습니다."),
     README_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 README를 찾을 수 없습니다."),
+    GITHUB_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 Gihub Token을 찾을 수 없습니다."),
 
     /**
      * 405 Method Not Allowed

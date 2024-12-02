@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.autorepo.server.domain.readme.dto.request.UploadReadmeRequest;
 import org.autorepo.server.domain.user.entity.User;
 import org.autorepo.server.domain.user.repository.UserRepository;
+import org.autorepo.server.global.error.ErrorCode;
 import org.autorepo.server.global.error.exception.EntityNotFoundException;
 import org.autorepo.server.global.error.exception.InternalServerException;
 import org.autorepo.server.global.utils.GitHubService;
@@ -30,10 +31,15 @@ public class UploadReadmeService {
 
     private static final String GITHUB_README_API = "https://api.github.com/repos/%s/%s/contents/README.md";
 
-    public void uploadReadme(UploadReadmeRequest uploadReadmeRequest, String githubLogin) {
-        // GitHub 'login'으로 사용자 조회
-        User user = userRepository.findByGithubId(githubLogin)
+    public void uploadReadme(UploadReadmeRequest uploadReadmeRequest, Long userId) {
+        // User ID로 사용자 조회
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
+
+        String githubToken = user.getGithubToken();
+        if (githubToken == null || githubToken.isEmpty()) {
+            throw new EntityNotFoundException(ErrorCode.GITHUB_TOKEN_NOT_FOUND);
+        }
 
         String repoUrl = uploadReadmeRequest.repoUrl();
         String[] repoInfo = repoUrl.replace("https://github.com/", "").split("/");
@@ -44,10 +50,9 @@ public class UploadReadmeService {
         String repo = repoInfo[1];
 
         String content = uploadReadmeRequest.content();
-        String path = "README.md";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(user.getGithubToken());
+        headers.setBearerAuth(githubToken);  // GitHub Token 설정
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         String url = String.format(GITHUB_README_API, owner, repo);

@@ -1,27 +1,18 @@
 package org.autorepo.server.domain.readme.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.sun.net.httpserver.Authenticator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.autorepo.server.domain.readme.dto.request.ReadmeRequest;
 import org.autorepo.server.domain.readme.dto.request.UploadReadmeRequest;
 import org.autorepo.server.domain.readme.dto.response.ReadmeResponse;
-import org.autorepo.server.domain.readme.entity.Readme;
 import org.autorepo.server.domain.readme.service.CreateReadmeService;
 import org.autorepo.server.domain.readme.service.UploadReadmeService;
-import org.autorepo.server.domain.template.dto.request.ShareTemplateRequestDto;
-import org.autorepo.server.domain.user.repository.UserRepository;
 import org.autorepo.server.global.common.SuccessResponse;
 import org.autorepo.server.global.error.ErrorCode;
 import org.autorepo.server.global.error.exception.EntityNotFoundException;
-import org.autorepo.server.global.utils.GitHubService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import static org.autorepo.server.global.error.ErrorCode.USER_NOT_FOUND;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -46,10 +37,11 @@ public class ReadmeController {
     }
 
     @PutMapping("/upload")
-    public ResponseEntity<SuccessResponse<?>> uploadReadme(
-            @RequestBody UploadReadmeRequest uploadReadmeRequest,
-            @AuthenticationPrincipal String userGithubId) {
-        uploadReadmeService.uploadReadme(uploadReadmeRequest, userGithubId);
+    public ResponseEntity<SuccessResponse<?>> uploadReadme(@RequestBody UploadReadmeRequest uploadReadmeRequest, @AuthenticationPrincipal Long userId) {
+        if (userId == null) {
+            throw new EntityNotFoundException(ErrorCode.USER_ID_MISSING);
+        }
+        uploadReadmeService.uploadReadme(uploadReadmeRequest, userId);
         return SuccessResponse.created(null);
     }
 }
