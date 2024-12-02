@@ -42,55 +42,66 @@ public class TemplateService {
 
 
 // 템플릿 업로드
-    public void uploadTemplate(UploadTemplateRequestDto uploadTemplateRequestDto, Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
+public void uploadTemplate(UploadTemplateRequestDto uploadTemplateRequestDto, Long userId) {
+    User user = userRepository.findById(userId)
+            .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
 
-        // PR/ISSUE 템플릿 구분
-        boolean isPR = uploadTemplateRequestDto.type() == TemplateType.PR;
-        String metaContent = "---\nname: Issue template\nabout: Issue template\ntitle: ''\nlabels: ''\nassignees: ''\n---";
-        String content = isPR ? uploadTemplateRequestDto.content() : metaContent + "\n" + uploadTemplateRequestDto.content();
-        String path = isPR ? ".github/pull_request_template.md" : ".github/ISSUE_TEMPLATE/issue_template.md";
+    // PR/ISSUE 템플릿 구분
+    boolean isPR = uploadTemplateRequestDto.type() == TemplateType.PR;
+    String metaContent = "---\nname: Issue template\nabout: Issue template\ntitle: ''\nlabels: ''\nassignees: ''\n---";
+    String content = isPR ? uploadTemplateRequestDto.content() : metaContent + "\n" + uploadTemplateRequestDto.content();
+    String path = isPR ? ".github/pull_request_template.md" : ".github/ISSUE_TEMPLATE/issue_template.md";
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + user.getGithubToken());
-        String url = gitHubService.createGitHubApiUrl(GITHUB_API_URL, uploadTemplateRequestDto.repoUrl(), path, headers, user.getGithubToken());
-        String base64Content = java.util.Base64.getEncoder().encodeToString(content.getBytes());
-        JSONObject jsonBody = new JSONObject();
-        jsonBody.put("message", "Update " + uploadTemplateRequestDto.type() + " Template");
-        jsonBody.put("content", base64Content);
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("Authorization", "Bearer " + user.getGithubToken());
 
+    // GitHub API URL 생성
+    String url = gitHubService.createGitHubApiUrl(GITHUB_API_URL, uploadTemplateRequestDto.repoUrl(), path, headers, user.getGithubToken());
+
+    // 파일 Base64 인코딩
+    String base64Content = java.util.Base64.getEncoder().encodeToString(content.getBytes());
+    JSONObject jsonBody = new JSONObject();
+    jsonBody.put("message", "Update " + uploadTemplateRequestDto.type() + " Template");
+    jsonBody.put("content", base64Content);
+
+    try {
+        // 기존 파일 SHA 확인
+        String sha = null;
         try {
-            String sha = null;
-            try {
-                sha = gitHubService.getFileSha(url, headers);
-            } catch (HttpClientErrorException.NotFound e) {
-                System.out.println("기존 파일이 존재하지 않습니다. 새로 생성합니다.");
-            }
-            if (sha != null) {
-                jsonBody.put("sha", sha);
-            }
-            gitHubService.sendRequest(url, HttpMethod.PUT, headers, jsonBody.toString());
-        } catch (Exception e) {
-            throw new InternalServerException(GITHUB_TEMPLATE_UPLOAD_ERROR);
+            sha = gitHubService.getFileSha(url, headers);
+        } catch (HttpClientErrorException.NotFound e) {
+            System.out.println("기존 파일이 존재하지 않습니다. 새로 생성합니다.");
         }
+        // 기존 파일이 존재하면 SHA를 포함하여 업데이트, 존재하지 않으면 새로 생성
+        if (sha != null) {
+            jsonBody.put("sha", sha);  // 기존 파일을 수정하는 경우 SHA를 포함
+        }
+
+        // GitHub API로 요청 전송
+        gitHubService.sendRequest(url, HttpMethod.PUT, headers, jsonBody.toString());
+    } catch (Exception e) {
+        // 예외 발생 시 처리
+        System.out.println("GitHub API 호출 실패: " + e.getMessage());
+        throw new InternalServerException(GITHUB_TEMPLATE_UPLOAD_ERROR);
     }
+}
 
-        // 템플릿 저장
-        public void saveTemplate(ShareTemplateRequestDto shareTemplateRequestDto, String imageUrl) {
-            Repo repo = repoRepository.findByRepoUrl(shareTemplateRequestDto.repoUrl())
-                    .orElseThrow(() -> new EntityNotFoundException(REPO_NOT_FOUND));
 
-            Template newTemplate = Template.builder()
-                    .repo(repo)
-                    .title(shareTemplateRequestDto.title())
-                    .content(shareTemplateRequestDto.content())
-                    .type(shareTemplateRequestDto.type())
-                    .imageUrl(imageUrl)
-                    .build();
+    // 템플릿 저장
+    public void saveTemplate(ShareTemplateRequestDto shareTemplateRequestDto, String imageUrl) {
+        Repo repo = repoRepository.findByRepoUrl(shareTemplateRequestDto.repoUrl())
+                .orElseThrow(() -> new EntityNotFoundException(REPO_NOT_FOUND));
 
-            templateRepository.save(newTemplate);
-        }
+        Template newTemplate = Template.builder()
+                .repo(repo)
+                .title(shareTemplateRequestDto.title())
+                .content(shareTemplateRequestDto.content())
+                .type(shareTemplateRequestDto.type())
+                .imageUrl(imageUrl)
+                .build();
+
+        templateRepository.save(newTemplate);
+    }
 
 
 

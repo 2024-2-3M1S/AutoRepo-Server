@@ -44,35 +44,46 @@ public class GitHubService {
         HttpEntity<String> request = new HttpEntity<>(body, headers);
         try {
             return restTemplate.exchange(url, method, request, String.class);
+
         } catch (HttpClientErrorException e) {
             System.out.println("GitHub API 요청 실패: " + e.getMessage());
             System.out.println("응답 코드: " + e.getStatusCode());
             System.out.println("응답 본문: " + e.getResponseBodyAsString());
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                System.out.println("404 오류 발생: 파일을 찾을 수 없습니다. 새로운 파일을 업로드 할 예정입니다.");
+                return null;
+            }
 
             throw new InternalServerException(GITHUB_API_ERROR);
         }
     }
 
-    // GitHub API로 SHA 조회(기존 값 존재 유무 확인)
-    public String getFileSha(String url, HttpHeaders headers) {
-        try {
-            ResponseEntity<String> response = sendRequest(url, HttpMethod.GET, headers, null);
-            if (response.getStatusCode().is2xxSuccessful()) {
-                return new org.json.JSONObject(response.getBody()).getString("sha");
-            }
-        } catch (HttpClientErrorException e) {
-            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                System.out.println("File not found. ");
-                return null; // 파일이 없는 경우 null 반환
-            }
-            throw new InternalServerException(UNPROCESSABLE_ENTITY);
-        } catch (Exception e) {
-            System.out.println("Unexpected error: " + e.getMessage());
-            throw new InternalServerException(UNPROCESSABLE_ENTITY);
-        }
+// GitHub API로 SHA 조회(기존 값 존재 유무 확인)
+public String getFileSha(String url, HttpHeaders headers) {
+    try {
+        ResponseEntity<String> response = sendRequest(url, HttpMethod.GET, headers, null);
 
-        return null;
+        // 응답이 없거나, 상태 코드가 성공적이지 않으면 null 반환
+        if (response == null || !response.getStatusCode().is2xxSuccessful()) {
+            System.out.println("File not found or repository is empty.");
+            return null; // 파일이 없거나 비어있는 경우 null 반환
+        }
+        // 정상 응답이면 SHA 값 반환
+        return new org.json.JSONObject(response.getBody()).getString("sha");
+    } catch (HttpClientErrorException e) {
+        // 404 오류가 발생하면 파일이 없다는 의미로 처리
+        if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+            System.out.println("File not found. Proceeding with new file upload.");
+            return null; // 파일이 없으면 null 반환
+        }
+        // 그 외의 오류 처리
+        throw new InternalServerException(UNPROCESSABLE_ENTITY);
+    } catch (Exception e) {
+        System.out.println("Unexpected error: " + e.getMessage());
+        throw new InternalServerException(UNPROCESSABLE_ENTITY);
     }
+}
+
 
 
 //    public String getUsernameFromPAT(String token) {
