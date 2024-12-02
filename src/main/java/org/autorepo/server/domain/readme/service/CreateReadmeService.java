@@ -3,9 +3,6 @@ package org.autorepo.server.domain.readme.service;
 import lombok.RequiredArgsConstructor;
 import org.autorepo.server.domain.readme.dto.request.ReadmeRequest;
 import org.autorepo.server.domain.readme.dto.response.ReadmeResponse;
-import org.autorepo.server.domain.readme.entity.Readme;
-import org.autorepo.server.domain.readme.repository.ReadmeRepository;
-import org.autorepo.server.global.utils.MarkdownToImageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,22 +13,9 @@ import java.util.*;
 @Transactional
 public class CreateReadmeService {
 
-    private final MarkdownToImageConverter markdownToImageConverter;
-    private final ReadmeRepository readmeRepository;
-
     public ReadmeResponse generateAndSaveReadme(ReadmeRequest readmeRequest) {
         String markdown = generateMarkdown(readmeRequest);
-        String imageUrl = markdownToImageConverter.convertMarkdownToImage(markdown, readmeRequest.getTitle());
-        Readme readme = saveReadme(readmeRequest, markdown, imageUrl);
-        return new ReadmeResponse(readme.getTitle(), readme.getContent(), readme.getImageUrl());
-    }
-
-    private Readme saveReadme(ReadmeRequest readmeRequest, String markdown, String imageUrl) {
-        Readme readme = new Readme();
-        readme.setTitle(readmeRequest.getTitle());
-        readme.setContent(markdown);
-        readme.setImageUrl(imageUrl);
-        return readmeRepository.save(readme);
+        return new ReadmeResponse(readmeRequest.getTitle(), markdown);
     }
 
     public String generateMarkdown(ReadmeRequest readmeRequest) {

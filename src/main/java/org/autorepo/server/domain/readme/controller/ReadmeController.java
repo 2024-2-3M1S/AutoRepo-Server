@@ -28,7 +28,6 @@ public class ReadmeController {
         log.info("Received request to generate and save README: {}", readmeRequest);
         try {
             ReadmeResponse response = createReadmeService.generateAndSaveReadme(readmeRequest);
-            log.info("Generated and saved README: {}", response);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error while generating markdown", e);
