@@ -24,8 +24,12 @@ public class CreateReadmeService {
         StringBuilder prompt = new StringBuilder();
 
         // 제목과 설명
-        prompt.append("# 🩵").append(readmeRequest.getTitle()).append("\n");
-        prompt.append("**프로젝트 설명**: ").append(readmeRequest.getDescription()).append("\n\n");
+        prompt.append("# 💻").append(readmeRequest.getTitle()).append("\n");
+
+        // Markdown 문법 제거 - '#' 기호 제거
+        String plainTextDescription = readmeRequest.getDescription()
+                .replaceAll("#+", "");
+        prompt.append("**프로젝트 설명**: ").append(plainTextDescription).append("\n\n");
 
         // 소개 섹션
         prompt.append("## 🚀 소개\n").append(readmeRequest.getDescription()).append("\n\n");
