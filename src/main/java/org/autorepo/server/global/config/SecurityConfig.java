@@ -39,6 +39,10 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configure(http))
+                // HTTP 요청도 HTTPS로 redirection
+                .requiresChannel(channel -> channel
+                        .anyRequest().requiresSecure()
+                )
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/favicon.ico").permitAll()
