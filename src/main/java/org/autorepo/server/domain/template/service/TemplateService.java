@@ -50,6 +50,7 @@ public void uploadTemplate(UploadTemplateRequestDto uploadTemplateRequestDto, Lo
     boolean isPR = uploadTemplateRequestDto.type() == TemplateType.PR;
     String metaContent = "---\nname: Issue template\nabout: Issue template\ntitle: ''\nlabels: ''\nassignees: ''\n---";
     String formattedContent = uploadTemplateRequestDto.content().replace("\n", "<br>");
+    System.out.println("formattedContent = " + formattedContent);
     String content = isPR ? formattedContent : metaContent + "\n" + formattedContent;
     String path = isPR ? ".github/pull_request_template.md" : ".github/ISSUE_TEMPLATE/issue_template.md";
 
