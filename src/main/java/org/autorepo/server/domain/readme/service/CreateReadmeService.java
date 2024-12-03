@@ -26,10 +26,9 @@ public class CreateReadmeService {
         // 제목과 설명
         prompt.append("# 💻").append(readmeRequest.getTitle()).append("\n");
 
-        // Markdown 문법 제거 - '#' 기호 제거
-        String plainTextDescription = readmeRequest.getDescription()
-                .replaceAll("#+", "");
-        prompt.append("**프로젝트 설명**: ").append(plainTextDescription).append("\n\n");
+        // 프로젝트 설명을 처리하고 개행 추가
+        String plainTextDescription = readmeRequest.getDescription();
+        prompt.append("**프로젝트 설명**\n").append(plainTextDescription).append("\n\n");
 
         // 소개 섹션
         prompt.append("## 🚀 소개\n").append(readmeRequest.getDescription()).append("\n\n");
