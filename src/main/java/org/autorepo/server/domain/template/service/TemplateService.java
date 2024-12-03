@@ -49,7 +49,8 @@ public void uploadTemplate(UploadTemplateRequestDto uploadTemplateRequestDto, Lo
     // PR/ISSUE 템플릿 구분
     boolean isPR = uploadTemplateRequestDto.type() == TemplateType.PR;
     String metaContent = "---\nname: Issue template\nabout: Issue template\ntitle: ''\nlabels: ''\nassignees: ''\n---";
-    String content = isPR ? uploadTemplateRequestDto.content() : metaContent + "\n" + uploadTemplateRequestDto.content();
+    String formattedContent = uploadTemplateRequestDto.content().replace("\n", "<br>");
+    String content = isPR ? formattedContent : metaContent + "\n" + formattedContent;
     String path = isPR ? ".github/pull_request_template.md" : ".github/ISSUE_TEMPLATE/issue_template.md";
 
     HttpHeaders headers = new HttpHeaders();
