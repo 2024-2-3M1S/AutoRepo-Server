@@ -46,48 +46,77 @@ public void uploadTemplate(UploadTemplateRequestDto uploadTemplateRequestDto, Lo
     User user = userRepository.findById(userId)
             .orElseThrow(() -> new EntityNotFoundException(USER_NOT_FOUND));
 
-    // PR/ISSUE 템플릿 구분
-    boolean isPR = uploadTemplateRequestDto.type() == TemplateType.PR;
-    String metaContent = "---\nname: Issue template\nabout: Issue template\ntitle: ''\nlabels: ''\nassignees: ''\n---";
-    String formattedContent = uploadTemplateRequestDto.content()
-            .replace("\\n", "  \n"); // 두 개의 공백 + \n으로 변환
-    String content = isPR ? formattedContent : metaContent + "\n" + formattedContent;
-    System.out.println("formattedContent = " + formattedContent);
-    String path = isPR ? ".github/pull_request_template.md" : ".github/ISSUE_TEMPLATE/issue_template.md";
+    // 1. 템플릿 내용과 파일 경로 생성
+    Map<String, String> templateData = generateTemplateData(uploadTemplateRequestDto);
 
-    HttpHeaders headers = new HttpHeaders();
-    headers.set("Authorization", "Bearer " + user.getGithubToken());
+    // 2. GitHub API URL 생성
+    String url = gitHubService.createGitHubApiUrl(
+            GITHUB_API_URL, uploadTemplateRequestDto.repoUrl(), templateData.get("path"), new HttpHeaders(), user.getGithubToken()
+    );
 
-    // GitHub API URL 생성
-    String url = gitHubService.createGitHubApiUrl(GITHUB_API_URL, uploadTemplateRequestDto.repoUrl(), path, headers, user.getGithubToken());
-
-    // 파일 Base64 인코딩
-    String base64Content = java.util.Base64.getEncoder().encodeToString(content.getBytes());
-    JSONObject jsonBody = new JSONObject();
-    jsonBody.put("message", "Update " + uploadTemplateRequestDto.type() + " Template");
-    jsonBody.put("content", base64Content);
-
-    try {
-        // 기존 파일 SHA 확인
-        String sha = null;
-        try {
-            sha = gitHubService.getFileSha(url, headers);
-        } catch (HttpClientErrorException.NotFound e) {
-            System.out.println("기존 파일이 존재하지 않습니다. 새로 생성합니다.");
-        }
-        // 기존 파일이 존재하면 SHA를 포함하여 업데이트, 존재하지 않으면 새로 생성
-        if (sha != null) {
-            jsonBody.put("sha", sha);  // 기존 파일을 수정하는 경우 SHA를 포함
-        }
-
-        // GitHub API로 요청 전송
-        gitHubService.sendRequest(url, HttpMethod.PUT, headers, jsonBody.toString());
-    } catch (Exception e) {
-        // 예외 발생 시 처리
-        System.out.println("GitHub API 호출 실패: " + e.getMessage());
-        throw new InternalServerException(GITHUB_TEMPLATE_UPLOAD_ERROR);
-    }
+    // 3. GitHub로 템플릿 업로드 요청
+    sendTemplateToGitHub(url, templateData.get("content"), uploadTemplateRequestDto.type(), user.getGithubToken());
 }
+
+    private Map<String, String> generateTemplateData(UploadTemplateRequestDto uploadTemplateRequestDto) {
+        boolean isPR = uploadTemplateRequestDto.type() == TemplateType.PR;
+        String timestamp = String.valueOf(System.currentTimeMillis() % 10000);
+        String metaContent = String.format("---\nname: Issue template-%s\nabout: Issue template 입니다.\ntitle: ''\nlabels: ''\nassignees: ''\n---", timestamp);
+        String formattedContent = uploadTemplateRequestDto.content().replace("\\n", "  \n");
+        String content = isPR ? formattedContent : metaContent + "\n" + formattedContent;
+
+        String path = isPR
+                ? String.format(".github/pull_request_template.md")
+                : String.format(".github/ISSUE_TEMPLATE/--option-----filename-%s.md", timestamp);
+
+        Map<String, String> templateData = new HashMap<>();
+        templateData.put("content", content);
+        templateData.put("path", path);
+
+        return templateData;
+    }
+
+    // GitHub로 템플릿 업로드 요청
+    private void sendTemplateToGitHub(String url, String content, TemplateType type, String githubToken) {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + githubToken);
+        String base64Content = java.util.Base64.getEncoder().encodeToString(content.getBytes());
+
+        JSONObject jsonBody = new JSONObject();
+        if (type == TemplateType.ISSUE) {
+            jsonBody.put("message", "Add new Issue Template");
+        } else if (type == TemplateType.PR) {
+            jsonBody.put("message", " Update new PR Template");
+        }
+        jsonBody.put("content", base64Content);
+
+        try {
+            if (type == TemplateType.ISSUE) {
+                // 이슈 템플릿 업로드
+                gitHubService.sendRequest(url, HttpMethod.PUT, headers, jsonBody.toString());
+            } else if (type == TemplateType.PR) {
+
+                // PR 템플릿 업로드
+                String sha = null;
+                try {
+                    sha = gitHubService.getFileSha(url, headers);
+                } catch (HttpClientErrorException.NotFound e) {
+                }
+                // 기존 템플릿 SHA가 있는 경우 JSON에 추가
+                if (sha != null) {
+                    jsonBody.put("sha", sha);
+                }
+                gitHubService.sendRequest(url, HttpMethod.PUT, headers, jsonBody.toString());
+            } else {
+                throw new IllegalArgumentException("Unsupported Template Type: " + type);
+            }
+        } catch (Exception e) {
+            System.out.println("GitHub API 호출 실패: " + e.getMessage());
+            throw new InternalServerException(GITHUB_TEMPLATE_UPLOAD_ERROR);
+        }
+    }
+
 
 
     // 템플릿 저장
