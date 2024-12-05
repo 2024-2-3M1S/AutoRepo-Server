@@ -21,6 +21,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
         OAuth2User oAuth2User = super.loadUser(userRequest);
+        System.out.println("CustomOAuth2UserService - loadUser 호출됨");
 
         // GitHub의 email 필드를 가져오되, null이면 login으로 대체
         String email = oAuth2User.getAttribute("email");
@@ -31,11 +32,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         // 사용자 찾기 또는 생성 및 업데이트
         User user = userRepository.findByGithubId(githubEmail).map(existingUser -> {
+            System.out.println("기존 사용자 발견: " + existingUser.getGithubId());
             // 기존 사용자일 경우 토큰 업데이트
             existingUser.setGithubToken(accessToken);
             return userRepository.save(existingUser);
         }).orElseGet(() -> {
             // 새로운 사용자일 경우 생성중
+            System.out.println("새로운 사용자 발견: " + githubEmail);
             User newUser = userRepository.save(User.builder()
                     .githubId(githubEmail)
                     .githubToken(accessToken)
