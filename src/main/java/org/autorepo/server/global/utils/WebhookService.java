@@ -38,7 +38,13 @@ public class WebhookService {
 
         HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(body, headers);
 
-        restTemplate.postForEntity(discordWebhookUrl, requestEntity, String.class);
+        try {
+            restTemplate.postForEntity(discordWebhookUrl, requestEntity, String.class);
+            System.out.println("Discord Webhook 호출 성공");
+        } catch (Exception e) {
+            System.err.println("Discord Webhook 호출 실패: " + e.getMessage());
+            e.printStackTrace();
+        }
         return null;
     }
 

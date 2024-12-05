@@ -36,13 +36,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             return userRepository.save(existingUser);
         }).orElseGet(() -> {
             // 새로운 사용자일 경우 생성
-            User newUser = User.builder()
+            User newUser = userRepository.save(User.builder()
                     .githubId(githubEmail)
                     .githubToken(accessToken)
                     .userRole(UserRole.USER)
-                    .build();
+                    .build());
             webhookService.sendDiscordNotification();
-            return userRepository.save(newUser);
+            return newUser;
         });
 
         return new DefaultOAuth2User(oAuth2User.getAuthorities(), oAuth2User.getAttributes(), "id");
