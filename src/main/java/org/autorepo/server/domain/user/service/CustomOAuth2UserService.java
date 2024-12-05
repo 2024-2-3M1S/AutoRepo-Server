@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.autorepo.server.domain.user.entity.User;
 import org.autorepo.server.domain.user.entity.UserRole;
 import org.autorepo.server.domain.user.repository.UserRepository;
+import org.autorepo.server.global.utils.WebhookService;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+    private final WebhookService webhookService;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
@@ -39,6 +41,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .githubToken(accessToken)
                     .userRole(UserRole.USER)
                     .build();
+            webhookService.sendDiscordNotification();
             return userRepository.save(newUser);
         });
 
