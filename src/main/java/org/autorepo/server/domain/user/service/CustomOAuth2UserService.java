@@ -35,13 +35,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             existingUser.setGithubToken(accessToken);
             return userRepository.save(existingUser);
         }).orElseGet(() -> {
-            // 새로운 사용자일 경우 생성
+            // 새로운 사용자일 경우 생성중
             User newUser = userRepository.save(User.builder()
                     .githubId(githubEmail)
                     .githubToken(accessToken)
                     .userRole(UserRole.USER)
                     .build());
+            System.out.println("새로운 사용자 등록 완료");
             webhookService.sendDiscordNotification();
+            System.out.println("웹훅 호출 완료");
             return newUser;
         });
 

@@ -24,6 +24,7 @@ public class WebhookService {
 
     // 회원가입 웹훅
     public String sendDiscordNotification() {
+        System.out.println("Discord Webhook 호출중");
         RestTemplate restTemplate = new RestTemplate();
         Long totalMembers = userRepository.count();
         Long totalRepos = repoRepository.count();
