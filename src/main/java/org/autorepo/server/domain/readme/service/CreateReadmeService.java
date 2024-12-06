@@ -1,5 +1,6 @@
 package org.autorepo.server.domain.readme.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.autorepo.server.domain.readme.dto.request.ReadmeRequest;
 import org.autorepo.server.domain.readme.dto.request.TechStack;
@@ -7,6 +8,8 @@ import org.autorepo.server.domain.readme.dto.request.TeamMember;
 import org.autorepo.server.domain.readme.dto.response.ReadmeResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.*;
 
@@ -20,15 +23,20 @@ public class CreateReadmeService {
         return new ReadmeResponse(readmeRequest.getTitle(), markdown);
     }
 
+    private String detectLanguage() {
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        String acceptLanguage = request.getHeader("Accept-Language");
+        if (acceptLanguage != null) {
+            return acceptLanguage.split(",")[0].split("-")[0]; // "en-US" -> "en"
+        }
+        return "ko";
+    }
+
     public String generateMarkdown(ReadmeRequest readmeRequest) {
         StringBuilder prompt = new StringBuilder();
 
         // 제목과 설명
         prompt.append("# 💻").append(readmeRequest.getTitle()).append("\n");
-
-        // 프로젝트 설명을 처리하고 개행 추가
-        String plainTextDescription = readmeRequest.getDescription();
-        prompt.append("**프로젝트 설명**\n").append(plainTextDescription).append("\n\n");
 
         // 소개 섹션
         prompt.append("## 🚀 소개\n").append(readmeRequest.getDescription()).append("\n\n");
