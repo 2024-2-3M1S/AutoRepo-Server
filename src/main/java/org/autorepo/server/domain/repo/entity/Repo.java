@@ -24,10 +24,11 @@ public class Repo {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
-    @OneToMany(mappedBy = "repo")
+    @OneToMany(mappedBy = "repo", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Label> labels;
-    @OneToMany(mappedBy = "repo")
+    @OneToMany(mappedBy = "repo", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Readme> readmes;
-    @OneToMany(mappedBy = "repo")
+    @OneToMany(mappedBy = "repo", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Template> templates;
+
 }

@@ -53,6 +53,20 @@ public class RepoService {
 
         List<Map<String, Object>> repos = response.getBody();
 
+        // GitHub에서 가져온 URL 리스트
+        List<String> githubRepoUrls = repos != null ? repos.stream()
+                .map(repoData -> (String) repoData.get("html_url"))
+                .toList() : List.of();
+
+        // DB에서 해당 유저의 저장된 레포지토리 리스트 가져오기
+        List<Repo> existingRepos = repoRepository.findAllByUser(user);
+
+        // GitHub에 없는 레포지토리 DB에서 삭제
+        List<Repo> reposToDelete = existingRepos.stream()
+                .filter(repo -> !githubRepoUrls.contains(repo.getRepoUrl()))
+                .toList();
+        repoRepository.deleteAll(reposToDelete);
+
         if (repos != null) {
             for (Map<String, Object> repoData : repos) {
                 String repoName = (String) repoData.get("name");
