@@ -14,13 +14,9 @@
   <br>
   <img src="https://velog.velcdn.com/images/hanni/post/129dfc33-a576-4bb1-b0e8-80bc29cc4431/image.png" width="800" style="height: auto; object-fit: cover;">
   <br> 
-  <img src="https://velog.velcdn.com/images/hanni/post/65bfacdb-0cf9-48c9-854c-69070da1025b/image.png" width="800" style="height: auto; object-fit: cover;">
-  <br>
   
 - ### 라벨 생성 및 관리
 
-  <br> 
-  <img src="https://velog.velcdn.com/images/hanni/post/9415ff77-c16e-4236-a52e-87521650f66a/image.gif" width="800" style="height: auto; object-fit: cover;">
   <br> 
   <img src="https://velog.velcdn.com/images/hanni/post/07ec5ef3-d8b5-4485-8bfc-a151e43904da/image.png" width="800" style="height: auto; object-fit: cover;">
   <br> 
