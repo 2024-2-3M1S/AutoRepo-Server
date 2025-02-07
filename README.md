@@ -1,4 +1,4 @@
-# <img src="https://github.com/user-attachments/assets/8fcbc238-5189-4443-b586-5c3eee8c1ceb" alt="logo" width="50" style="margin-top: 30px; height: auto;" /> AutoRepo , 깃허브 세팅을 자동으로 편하게!
+# <img src="https://github.com/user-attachments/assets/8fcbc238-5189-4443-b586-5c3eee8c1ceb" alt="logo" width="40" style="margin-top: 30px; height: auto;" /> AutoRepo , 깃허브 세팅을 자동으로 편하게!
 
 <br>
 <img src="https://velog.velcdn.com/images/hanni/post/fb8ea412-418c-4b13-9a7c-5b3ad14444e2/image.png" width="800" style="height: auto; object-fit: cover;">
@@ -16,9 +16,9 @@
   <br> 
   
 - ### 라벨 생성 및 관리
-
+  
   <br> 
-  <img src="https://velog.velcdn.com/images/hanni/post/07ec5ef3-d8b5-4485-8bfc-a151e43904da/image.png" width="800" style="height: auto; object-fit: cover;">
+  <img src="https://velog.velcdn.com/images/hanni/post/9415ff77-c16e-4236-a52e-87521650f66a/image.gif" width="800" style="height: auto; object-fit: cover;">
   <br> 
   <img src="https://velog.velcdn.com/images/hanni/post/09b45cc5-81e5-4b2d-8cd0-193ac8c1b0b2/image.png" width="800" style="height: auto; object-fit: cover;">
   <br> 
